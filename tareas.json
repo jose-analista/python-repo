@@ -1,0 +1,12 @@
+[
+    {
+        "id": 1,
+        "titulo": "Estudiar JSON",
+        "completada": false
+    },
+    {
+        "id": 2,
+        "titulo": "Hacer commit",
+        "completada": false
+    }
+]

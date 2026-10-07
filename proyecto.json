@@ -1,0 +1,11 @@
+{
+    "nombre": "python-repo",
+    "lenguaje": "Python",
+    "lecciones": 23,
+    "temas": [
+        "listas",
+        "diccionarios",
+        "excepciones",
+        "json"
+    ]
+}
