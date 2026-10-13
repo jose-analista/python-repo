@@ -96,6 +96,40 @@ def buscar_ciudad(ciudad: str) -> list[dict[str, Any]]:
 
 
 # ============================================================
+# 2.5. OBTENER UBICACIÓN ACTUAL
+# ============================================================
+
+def obtener_ubicacion_actual() -> dict[str, Any] | None:
+    """
+    Obtiene la ubicación aproximada del usuario basada en su dirección IP.
+    """
+    # Usamos ip-api.com, que es más permisivo con scripts de Python
+    url_ip = "http://ip-api.com/json/"
+    
+    try:
+        respuesta = requests.get(url_ip, timeout=TIMEOUT)
+        respuesta.raise_for_status()
+        datos = respuesta.json()
+        
+        # Esta API devuelve "status": "success" si funcionó correctamente
+        if datos.get("status") != "success":
+            print(f"⚠️ La API de ubicación respondió con error: {datos.get('message')}")
+            return None
+        
+        # Nota: esta API usa "lat" y "lon" en lugar de "latitude" y "longitude"
+        return {
+            "name": datos.get("city", "Ubicación desconocida"),
+            "country": datos.get("country", "País desconocido"),
+            "latitude": datos.get("lat"),
+            "longitude": datos.get("lon"),
+        }
+        
+    except requests.exceptions.RequestException as error:
+        # Ahora imprimimos el error real para saber qué pasa
+        print(f"⚠️ Error de conexión al obtener ubicación: {error}")
+        return None
+
+# ============================================================
 # 3. CONSULTAR EL CLIMA
 # ============================================================
 
@@ -264,60 +298,67 @@ def mostrar_clima(
 
 def main() -> None:
     """
-    Coordina el flujo completo del programa:
-    entrada del usuario, búsqueda, consulta y presentación.
+    Coordina el flujo completo del programa, permitiendo
+    elegir entre ubicación automática o búsqueda manual.
     """
+    print("\n--- CONSULTA DEL CLIMA ---")
+    print("1. Usar mi ubicación actual (automático)")
+    print("2. Buscar una ciudad manualmente")
+    
+    opcion = input("Elige una opción (1 o 2): ").strip()
+    
+    ubicacion = None
 
-    # Solicitamos una ciudad y eliminamos espacios al principio
-    # y al final con strip().
-    ciudad = input("Ingresa una ciudad: ").strip()
-
-    # No continuamos si el usuario no escribió nada.
-    if not ciudad:
-        print("Debes ingresar el nombre de una ciudad.")
-        return
-
-    # try permite controlar errores que podrían ocurrir durante
-    # las peticiones HTTP o al procesar los datos recibidos.
-    try:
-
-        # Paso 1: buscamos posibles coincidencias de la ciudad.
-        ciudades = buscar_ciudad(ciudad)
-
-        # Paso 2: permitimos elegir una de las coincidencias.
-        ubicacion = seleccionar_ciudad(ciudades)
-
-        # Si se cancela la selección, terminamos la función.
+    if opcion == "1":
+        # Flujo automático por IP
+        print("📍 Detectando ubicación...")
+        ubicacion = obtener_ubicacion_actual()
         if ubicacion is None:
+            print("No se pudo obtener la ubicación. Saliendo del programa.")
+            return
+            
+    else:
+        # Flujo manual (tu código original)
+        ciudad = input("Ingresa el nombre de una ciudad: ").strip()
+        if not ciudad:
+            print("Debes ingresar el nombre de una ciudad.")
+            return
+            
+        try:
+            ciudades = buscar_ciudad(ciudad)
+            ubicacion = seleccionar_ciudad(ciudades)
+            if ubicacion is None:
+                return
+        except requests.exceptions.RequestException as error:
+            print(f"Error de conexión al buscar la ciudad: {error}")
             return
 
+    # ============================================================
+    # A PARTIR DE AQUÍ, EL FLUJO ES EL MISMO PARA AMBAS OPCIONES
+    # ============================================================
+    
+    try:
         # Paso 3: consultamos el clima usando las coordenadas
-        # de la ciudad seleccionada.
         clima = consultar_clima(
             ubicacion["latitude"],
             ubicacion["longitude"],
         )
 
-        # Paso 4: presentamos el resultado al usuario.
+        # Paso 4: presentamos el resultado al usuario
         mostrar_clima(ubicacion, clima)
 
-    # Error: la petición superó el tiempo máximo de espera.
     except requests.exceptions.Timeout:
-        print("La consulta tardó demasiado. Inténtalo nuevamente.")
-
-    # Error: el servidor respondió con un estado HTTP de error.
+        print("La consulta del clima tardó demasiado. Inténtalo nuevamente.")
     except requests.exceptions.HTTPError as error:
-        print(f"Error HTTP al consultar la API: {error}")
-
-    # Otros problemas de red, conexión o petición HTTP.
+        print(f"Error HTTP al consultar el clima: {error}")
     except requests.exceptions.RequestException as error:
         print(f"Error de conexión: {error}")
-
-    # Errores al acceder a claves o procesar valores inesperados.
     except (KeyError, ValueError, TypeError):
         print("La API devolvió datos inesperados.")
 
 
+if __name__ == "__main__":
+    main()
 # ============================================================
 # 7. PUNTO DE ENTRADA DEL PROGRAMA
 # ============================================================
