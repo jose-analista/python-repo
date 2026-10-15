@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plantilla</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icono.svg') }}">
+  <style>
+    :root {
+      --verde: #25d366; --verde-oscuro: #128c7e;
+      --fondo: #eef2f1; --tarjeta: #ffffff; --texto: #1f2933;
+      --suave: #6b7a86; --borde: #d8e0e4;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --fondo: #0f1a1f; --tarjeta: #1a2730; --texto: #e8eef1; --suave: #93a4af; --borde: #2c3d48; }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--fondo); color: var(--texto);
+    }
+    header {
+      background: linear-gradient(135deg, var(--verde-oscuro), var(--verde));
+      color: #fff; text-align: center; padding: 22px 16px;
+    }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    main { max-width: 560px; margin: 20px auto 40px; padding: 0 16px; }
+    .tarjeta { background: var(--tarjeta); border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.10); }
+    .lienzo { text-align: center; min-height: 120px; }
+    .lienzo .canvas-container { margin: 0 auto; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+    label { display: block; font-size: .85rem; font-weight: 600; margin: 16px 0 6px; }
+    input {
+      width: 100%; padding: 12px 14px; font: inherit; color: var(--texto);
+      background: transparent; border: 1.5px solid var(--borde); border-radius: 10px; outline: none;
+    }
+    input:focus { border-color: var(--verde); }
+    .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .btn {
+      display: block; padding: 13px; font: inherit; font-weight: 600; text-align: center;
+      text-decoration: none; border: 0; border-radius: 10px; cursor: pointer;
+      background: var(--verde); color: #05361a;
+    }
+    .btn:hover { background: #1fbd5b; }
+    .btn.sec { background: transparent; color: var(--texto); border: 1.5px solid var(--borde); }
+    .btn.sec:hover { border-color: var(--verde-oscuro); background: transparent; }
+    .error { text-align: center; color: var(--suave); padding: 30px 0; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body data-pid="{{ pid }}">
+  <header><h1 id="titulo">Plantilla</h1></header>
+
+  <main>
+    <div class="tarjeta">
+      <div class="lienzo" id="contenedor"><canvas id="lienzo"></canvas></div>
+      <p class="error" id="error" hidden>No se pudo cargar la plantilla.</p>
+
+      <div id="controles" hidden>
+        <div id="bloque-nombre">
+          <label for="nombre">Nombre para personalizar la imagen</label>
+          <input type="text" id="nombre" placeholder="Ej: María" autocomplete="off">
+        </div>
+        <div class="acciones">
+          <button type="button" class="btn" id="descargar">Descargar PNG</button>
+          <a class="btn sec" id="abrir-editor" href="#">Editar</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+    const pid = document.body.dataset.pid;
+
+    let W = 1080, H = 1080, escala = 1, lienzo = null;
+    let textos = [];   // pares [objeto, textoOriginal] con el texto de la plantilla
+
+    function ajustar() {
+      const disponible = $("contenedor").clientWidth;
+      const maxAlto = Math.max(300, window.innerHeight * 0.65);
+      escala = Math.min(1, disponible / W, maxAlto / H);
+      if (!(escala > 0)) escala = 0.3;
+      lienzo.setZoom(escala);
+      lienzo.setWidth(Math.round(W * escala));
+      lienzo.setHeight(Math.round(H * escala));
+      lienzo.renderAll();
+    }
+
+    function aplicarNombre() {
+      const nombre = $("nombre").value.trim();
+      textos.forEach((par) => {
+        par[0].set("text", nombre ? par[1].split("{nombre}").join(nombre) : par[1]);
+      });
+      lienzo.renderAll();
+    }
+
+    function descargar() {
+      const nombre = $("nombre").value.trim();
+      lienzo.setZoom(1);
+      lienzo.setWidth(W);
+      lienzo.setHeight(H);
+      const url = lienzo.toDataURL({ format: "png", multiplier: 1 });
+      ajustar();
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bienvenida" + (nombre ? "_" + nombre.replace(/[^\w-]+/g, "_") : "") + ".png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function iniciar() {
+      let plantilla;
+      try {
+        const r = await fetch("/api/plantillas/" + pid);
+        if (!r.ok) throw new Error("no encontrada");
+        plantilla = await r.json();
+      } catch (e) {
+        $("contenedor").hidden = true;
+        $("error").hidden = false;
+        return;
+      }
+
+      W = plantilla.ancho;
+      H = plantilla.alto;
+      document.title = plantilla.nombre + " \u00B7 Plantilla";
+      $("titulo").textContent = plantilla.nombre;
+      $("abrir-editor").href = "/editor?abrir=" + pid;
+
+      lienzo = new fabric.StaticCanvas("lienzo", { width: W, height: H });
+      lienzo.loadFromJSON(plantilla.lienzo, function () {
+        lienzo.getObjects().forEach((o) => {
+          if (typeof o.text === "string") textos.push([o, o.text]);
+        });
+
+        // Si la plantilla no usa {nombre}, no hace falta pedirlo
+        const usaNombre = textos.some((par) => par[1].indexOf("{nombre}") !== -1);
+        $("bloque-nombre").hidden = !usaNombre;
+
+        // Permite enlaces como /p/<id>?nombre=María
+        const nombreUrl = new URLSearchParams(location.search).get("nombre");
+        if (nombreUrl) $("nombre").value = nombreUrl;
+
+        aplicarNombre();
+        ajustar();
+        $("controles").hidden = false;
+      });
+    }
+
+    $("nombre").addEventListener("input", aplicarNombre);
+    $("descargar").addEventListener("click", descargar);
+    window.addEventListener("resize", () => { if (lienzo) ajustar(); });
+
+    iniciar();
+  })();
+  </script>
+</body>
+</html>

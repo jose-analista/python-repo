@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor de plantillas</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icono.svg') }}">
+  <style>
+    :root {
+      --verde: #25d366;
+      --verde-oscuro: #128c7e;
+      --fondo: #eef2f1;
+      --tarjeta: #ffffff;
+      --texto: #1f2933;
+      --suave: #6b7a86;
+      --borde: #d8e0e4;
+      --peligro: #d64545;
+      --tablero: #dfe6e4;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fondo: #0f1a1f;
+        --tarjeta: #1a2730;
+        --texto: #e8eef1;
+        --suave: #93a4af;
+        --borde: #2c3d48;
+        --tablero: #0b1317;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+    }
+    .barra {
+      background: linear-gradient(135deg, var(--verde-oscuro), var(--verde));
+      color: #fff;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .barra img { width: 34px; height: 34px; border-radius: 9px; }
+    .barra h1 { margin: 0; font-size: 1.1rem; flex: 1; }
+    .barra a { color: #fff; font-weight: 600; font-size: .9rem; text-decoration: none; }
+    .barra a:hover { text-decoration: underline; }
+
+    .editor {
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr) 250px;
+      gap: 16px;
+      max-width: 1500px;
+      margin: 16px auto;
+      padding: 0 16px;
+      align-items: start;
+    }
+    @media (max-width: 1050px) { .editor { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--tarjeta);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+      margin-bottom: 16px;
+    }
+    .panel h2 { margin: 0 0 12px; font-size: .95rem; }
+    .panel h3 { margin: 14px 0 8px; font-size: .8rem; color: var(--suave); text-transform: uppercase; letter-spacing: .04em; }
+
+    label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 4px; color: var(--suave); }
+    input[type=text], input[type=number], select {
+      width: 100%;
+      padding: 9px 10px;
+      font: inherit; font-size: .9rem;
+      color: var(--texto);
+      background: transparent;
+      border: 1.5px solid var(--borde);
+      border-radius: 8px;
+      outline: none;
+    }
+    select option { color: #1f2933; }
+    input:focus, select:focus { border-color: var(--verde); }
+    input[type=color] { width: 100%; height: 36px; padding: 2px; border: 1.5px solid var(--borde); border-radius: 8px; background: transparent; cursor: pointer; }
+    input[type=range] { width: 100%; accent-color: var(--verde-oscuro); }
+    .fila { margin-bottom: 10px; }
+    .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    button {
+      font: inherit; font-size: .85rem; font-weight: 600;
+      padding: 9px 10px;
+      border: 0; border-radius: 8px;
+      background: var(--verde-oscuro); color: #fff;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    button:hover { background: #0e7568; }
+    button:disabled { opacity: .45; cursor: default; }
+    button.sec { background: transparent; color: var(--texto); border: 1.5px solid var(--borde); }
+    button.sec:hover { border-color: var(--verde-oscuro); background: transparent; }
+    button.sec.activo { background: var(--verde); color: #05361a; border-color: var(--verde); }
+    button.peligro { background: transparent; color: var(--peligro); border: 1.5px solid var(--borde); }
+    button.peligro:hover { border-color: var(--peligro); background: transparent; }
+    button.claro { background: var(--verde); color: #05361a; }
+    button.claro:hover { background: #1fbd5b; }
+    .herramientas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .herramientas .ancho { grid-column: 1 / -1; }
+    .archivo { display: none; }
+
+    /* zona central */
+    .zona-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-bottom: 12px; }
+    .zona-barra .fila { margin: 0; min-width: 170px; }
+    .zona-barra .botones { display: flex; gap: 6px; }
+    .tablero {
+      background: var(--tablero);
+      border-radius: 14px;
+      padding: 12px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .canvas-container { margin: 0 auto; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+    .exportar { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin-top: 12px; }
+
+    /* plantillas guardadas */
+    .plantillas { list-style: none; margin: 12px 0 0; padding: 0; max-height: 420px; overflow-y: auto; }
+    .plantillas li { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--borde); }
+    .plantillas img { width: 54px; height: 54px; object-fit: cover; border-radius: 8px; background: var(--tablero); flex: none; }
+    .plantillas .datos { flex: 1; min-width: 0; }
+    .plantillas .titulo { font-weight: 600; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .plantillas .mini-botones { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+    .plantillas button { padding: 4px 8px; font-size: .72rem; }
+    .vacio { color: var(--suave); font-size: .85rem; margin: 12px 0 0; }
+    .ayuda { color: var(--suave); font-size: .78rem; margin: 6px 0 0; }
+    [hidden] { display: none !important; }
+
+    #toast {
+      position: fixed; left: 50%; bottom: 24px;
+      transform: translate(-50%, 20px);
+      background: #1f2933; color: #fff;
+      padding: 10px 18px; border-radius: 999px;
+      font-size: .9rem; opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      max-width: 90%; text-align: center; z-index: 50;
+    }
+    #toast.visible { opacity: 1; transform: translate(-50%, 0); }
+    #toast.error { background: var(--peligro); }
+  </style>
+</head>
+<body>
+  <div class="barra">
+    <img src="{{ url_for('static', filename='icono.svg') }}" alt="Logo">
+    <h1>Editor de plantillas</h1>
+    
+    <a href="/">&larr; Volver a contactos</a>
+  </div>
+
+  <div class="editor">
+    <!-- COLUMNA IZQUIERDA: herramientas y plantillas -->
+    <aside>
+      <section class="panel">
+        <h2>Agregar elementos</h2>
+                <div class="herramientas">
+          <button type="button" id="add-texto" class="sec">Texto</button>
+          <button type="button" id="add-saludo" class="sec">Saludo {nombre}</button>
+          <button type="button" id="add-rect" class="sec">Rectángulo</button>
+          <button type="button" id="add-circulo" class="sec">Círculo</button>
+          <button type="button" id="add-imagen" class="sec ancho">Subir imagen local</button>
+          <button type="button" id="add-imagen-url" class="sec ancho">Agregar imagen por URL</button>
+        </div>
+        
+        <!-- Este es el contenedor que el JavaScript necesita encontrar -->
+        <div class="fila" id="url-imagen-container" hidden>
+          <label for="url-imagen">Pega una URL o selecciona un archivo arriba</label>
+          <input type="text" id="url-imagen" placeholder="https://ejemplo.com/logo.png">
+          <button type="button" id="cargar-url" class="claro" style="margin-top: 6px; width: 100%;">Cargar al lienzo</button>
+        </div>
+
+        <input type="file" id="archivo-imagen" class="archivo" accept="image/*">
+        <div class="fila" style="margin-top:12px">
+          <label for="fondo">Color de fondo</label>
+          <input type="color" id="fondo" value="#128c7e">
+        </div>
+        <p class="ayuda">Escribe <b>{nombre}</b> en cualquier texto: se reemplaza por el nombre del contacto al descargar o compartir.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Mis plantillas</h2>
+        <div class="fila">
+          <label for="nombre-plantilla">Nombre de la plantilla</label>
+          <input type="text" id="nombre-plantilla" placeholder="Ej: Bienvenida verde" maxlength="80" autocomplete="off">
+        </div>
+        <div class="dos">
+          <button type="button" id="guardar" class="claro">Guardar</button>
+          <button type="button" id="guardar-nueva" class="sec">Guardar copia</button>
+        </div>
+        <button type="button" id="nuevo" class="sec" style="width:100%;margin-top:8px">Nuevo diseño</button>
+        <ul class="plantillas" id="lista-plantillas"></ul>
+        <p class="vacio" id="sin-plantillas" hidden>Aún no tienes plantillas guardadas.</p>
+      </section>
+    </aside>
+
+    <!-- CENTRO: lienzo -->
+    <main>
+      <div class="zona-barra">
+        <div class="fila">
+          <label for="formato">Formato</label>
+          <select id="formato">
+            <option value="1080x1080">Cuadrado 1080 x 1080</option>
+            <option value="1080x1350">Vertical 1080 x 1350</option>
+            <option value="1080x1920">Historia 1080 x 1920</option>
+            <option value="1200x630">Horizontal 1200 x 630</option>
+          </select>
+        </div>
+        <div class="botones">
+          <button type="button" id="deshacer" class="sec" title="Deshacer (Ctrl+Z)">Deshacer</button>
+          <button type="button" id="rehacer" class="sec" title="Rehacer (Ctrl+Shift+Z)">Rehacer</button>
+        </div>
+      </div>
+
+      <div class="tablero" id="zona">
+        <canvas id="lienzo"></canvas>
+      </div>
+
+      <div class="exportar">
+        <div>
+          <label for="nombre-exportar">Nombre para la imagen <span style="font-weight:400">(reemplaza {nombre})</span></label>
+          <input type="text" id="nombre-exportar" placeholder="Ej: María" autocomplete="off">
+        </div>
+        <button type="button" id="descargar" class="claro">Descargar PNG</button>
+      </div>
+    </main>
+
+    <!-- DERECHA: propiedades -->
+    <aside>
+      <section class="panel">
+        <h2>Propiedades</h2>
+        <p class="vacio" id="sin-seleccion" style="margin:0">Haz clic en un elemento del lienzo para editarlo.</p>
+
+        <div id="con-seleccion" hidden>
+          <div class="fila" id="grupo-relleno">
+            <label for="p-relleno">Color</label>
+            <input type="color" id="p-relleno" value="#ffffff">
+          </div>
+
+          <div id="grupo-texto" hidden>
+            <div class="fila">
+              <label for="p-fuente">Fuente</label>
+              <select id="p-fuente">
+                <option>Arial</option>
+                <option>Georgia</option>
+                <option>Verdana</option>
+                <option>Trebuchet MS</option>
+                <option>Courier New</option>
+                <option>Impact</option>
+              </select>
+            </div>
+            <div class="dos fila">
+              <div>
+                <label for="p-tam">Tamaño</label>
+                <input type="number" id="p-tam" min="8" max="400" value="72">
+              </div>
+              <div>
+                <label for="p-alinear">Alinear</label>
+                <select id="p-alinear">
+                  <option value="left">Izquierda</option>
+                  <option value="center">Centro</option>
+                  <option value="right">Derecha</option>
+                </select>
+              </div>
+            </div>
+            <div class="fila">
+              <button type="button" id="p-negrita" class="sec" style="width:100%">Negrita</button>
+            </div>
+          </div>
+
+          <div class="fila">
+            <label for="p-opacidad">Opacidad</label>
+            <input type="range" id="p-opacidad" min="0.1" max="1" step="0.05" value="1">
+          </div>
+
+          <div class="dos fila">
+            <button type="button" id="p-frente" class="sec">Al frente</button>
+            <button type="button" id="p-atras" class="sec">Al fondo</button>
+          </div>
+          <div class="dos">
+            <button type="button" id="p-duplicar" class="sec">Duplicar</button>
+            <button type="button" id="p-eliminar" class="peligro">Eliminar</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+
+    // Tamaño real del diseño (lo que se exporta). En pantalla se muestra reducido con zoom.
+    let W = 1080, H = 1080, escala = 1;
+    let plantillaActual = null;           // id de la plantilla abierta (null = diseño nuevo)
+    let historial = [], pos = -1, restaurando = false;
+
+    // Los emojis van como códigos \u{...} para que nunca se corrompan al copiar/pegar
+    const SALUDO = "¡Hola {nombre}!";
+    const SUBTITULO = "Bienvenido/a \u{1F44B}";
+
+    const canvas = new fabric.Canvas("lienzo", {
+      backgroundColor: "#128c7e",
+      preserveObjectStacking: true,
+      width: W,
+      height: H
+    });
+
+    // Aspecto de los controles de selección
+    fabric.Object.prototype.transparentCorners = false;
+    fabric.Object.prototype.cornerColor = "#25d366";
+    fabric.Object.prototype.cornerStrokeColor = "#ffffff";
+    fabric.Object.prototype.borderColor = "#25d366";
+    fabric.Object.prototype.cornerStyle = "circle";
+    fabric.Object.prototype.cornerSize = 12;
+
+    // ---------- utilidades ----------
+    let temporizadorToast;
+    function aviso(texto, esError) {
+      const t = $("toast");
+      t.textContent = texto;
+      t.className = "visible" + (esError ? " error" : "");
+      clearTimeout(temporizadorToast);
+      temporizadorToast = setTimeout(() => { t.className = ""; }, 2600);
+    }
+
+    async function api(url, opciones) {
+      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opciones));
+      const datos = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(datos.error || "Ocurrió un error inesperado.");
+      return datos;
+    }
+
+    function aHex(color) {
+      try { return "#" + new fabric.Color(color).toHex(); } catch (e) { return "#000000"; }
+    }
+
+    function esTexto(o) { return !!o && typeof o.text === "string"; }
+
+    // ---------- tamaño en pantalla ----------
+    function ajustarEscala() {
+      const disponible = $("zona").clientWidth - 24;
+      const maxAlto = Math.max(320, window.innerHeight * 0.75);
+      escala = Math.min(1, disponible / W, maxAlto / H);
+      if (!(escala > 0)) escala = 0.3;
+      canvas.setZoom(escala);
+      canvas.setWidth(Math.round(W * escala));
+      canvas.setHeight(Math.round(H * escala));
+      canvas.renderAll();
+    }
+
+    // Ejecuta fn con el lienzo a tamaño real (para exportar sin pérdida) y luego vuelve a reducirlo
+    function enTamanoReal(fn) {
+      canvas.setZoom(1);
+      canvas.setWidth(W);
+      canvas.setHeight(H);
+      try { return fn(); } finally { ajustarEscala(); }
+    }
+
+    // ---------- historial (deshacer / rehacer) ----------
+    function estadoActual() {
+      return JSON.stringify({ ancho: W, alto: H, lienzo: canvas.toJSON() });
+    }
+
+    function botonesHistorial() {
+      $("deshacer").disabled = pos <= 0;
+      $("rehacer").disabled = pos >= historial.length - 1;
+    }
+
+    function guardarEstado() {
+      if (restaurando) return;
+      historial = historial.slice(0, pos + 1);
+      historial.push(estadoActual());
+      if (historial.length > 40) historial.shift();
+      pos = historial.length - 1;
+      botonesHistorial();
+    }
+
+    function cargarEstado(estado, alTerminar) {
+      const e = typeof estado === "string" ? JSON.parse(estado) : estado;
+      restaurando = true;
+      W = e.ancho || 1080;
+      H = e.alto || 1080;
+      $("formato").value = W + "x" + H;
+      canvas.loadFromJSON(e.lienzo, function () {
+        restaurando = false;
+        ajustarEscala();
+        $("fondo").value = aHex(canvas.backgroundColor);
+        mostrarPropiedades();
+        canvas.renderAll();
+        if (alTerminar) alTerminar();
+      });
+    }
+
+    function deshacer() {
+      if (restaurando || pos <= 0) return;
+      pos--;
+      cargarEstado(historial[pos], botonesHistorial);
+    }
+
+    function rehacer() {
+      if (restaurando || pos >= historial.length - 1) return;
+      pos++;
+      cargarEstado(historial[pos], botonesHistorial);
+    }
+
+    // ---------- crear elementos ----------
+    function centrar(o) {
+      o.set({
+        left: (W - o.getScaledWidth()) / 2,
+        top: (H - o.getScaledHeight()) / 2
+      });
+      o.setCoords();
+    }
+
+    function nuevoTexto(contenido, opciones) {
+      const t = new fabric.Textbox(contenido, Object.assign({
+        left: W * 0.1,
+        top: H * 0.4,
+        width: W * 0.8,
+        fontSize: 72,
+        fontFamily: "Arial",
+        fontWeight: "bold",
+        fill: "#ffffff",
+        textAlign: "center"
+      }, opciones || {}));
+      canvas.add(t);
+      return t;
+    }
+
+    function seleccionar(o) {
+      canvas.setActiveObject(o);
+      canvas.requestRenderAll();
+    }
+
+    function iniciarDiseno() {
+      restaurando = true;
+      canvas.clear();
+      canvas.setBackgroundColor("#128c7e", function () {});
+      nuevoTexto(SALUDO, { top: H * 0.34, fontSize: 110 });
+      nuevoTexto(SUBTITULO, { top: H * 0.5, fontSize: 64, fontWeight: "normal" });
+      restaurando = false;
+      $("fondo").value = "#128c7e";
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      historial = [];
+      pos = -1;
+      guardarEstado();
+      mostrarPropiedades();
+    }
+
+    function leerImagen(archivo, maximo) {
+      return new Promise((resolver, rechazar) => {
+        const lector = new FileReader();
+        lector.onerror = () => rechazar(new Error("No se pudo leer el archivo."));
+        lector.onload = () => {
+          const img = new Image();
+          img.onerror = () => rechazar(new Error("El archivo no es una imagen válida."));
+          img.onload = () => {
+            // Se reduce para que la plantilla no pese demasiado al guardarla
+            const k = Math.min(1, maximo / Math.max(img.width, img.height));
+            const c = document.createElement("canvas");
+            c.width = Math.max(1, Math.round(img.width * k));
+            c.height = Math.max(1, Math.round(img.height * k));
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            const conTransparencia = /png|webp|svg|gif/.test(archivo.type);
+            resolver(c.toDataURL(conTransparencia ? "image/png" : "image/jpeg", 0.88));
+          };
+          img.src = lector.result;
+        };
+        lector.readAsDataURL(archivo);
+      });
+    }
+
+    // ---------- panel de propiedades ----------
+    function objetoActivo() {
+      const o = canvas.getActiveObject();
+      return (o && o.type !== "activeSelection") ? o : null;
+    }
+
+    function mostrarPropiedades() {
+      const o = objetoActivo();
+      $("sin-seleccion").hidden = !!o;
+      $("con-seleccion").hidden = !o;
+      if (!o) return;
+
+      const texto = esTexto(o);
+      const imagen = o.type === "image";
+      $("grupo-texto").hidden = !texto;
+      $("grupo-relleno").hidden = imagen;
+      if (!imagen) $("p-relleno").value = aHex(o.fill);
+      $("p-opacidad").value = o.opacity;
+      if (texto) {
+        $("p-fuente").value = o.fontFamily;
+        $("p-tam").value = Math.round(o.fontSize);
+        $("p-alinear").value = o.textAlign;
+        $("p-negrita").classList.toggle("activo", o.fontWeight === "bold");
+      }
+    }
+
+    function aplicar(propiedad, valor) {
+      const o = objetoActivo();
+      if (!o) return;
+      o.set(propiedad, valor);
+      o.setCoords();
+      canvas.requestRenderAll();
+    }
+
+    function eliminarSeleccion() {
+      const activos = canvas.getActiveObjects();
+      if (!activos.length) return;
+      canvas.discardActiveObject();
+      activos.forEach((o) => canvas.remove(o));
+      canvas.requestRenderAll();
+    }
+
+    function duplicarSeleccion() {
+      const o = objetoActivo();
+      if (!o) return;
+      o.clone(function (copia) {
+        copia.set({ left: o.left + 30, top: o.top + 30 });
+        canvas.add(copia);
+        seleccionar(copia);
+      });
+    }
+
+    // ---------- exportar ----------
+    function exportarPNG(nombre) {
+      canvas.discardActiveObject();
+      canvas.renderAll();
+
+      // Se reemplaza {nombre} solo durante la exportación y luego se restaura el texto
+      const cambios = [];
+      if (nombre) {
+        canvas.getObjects().forEach((o) => {
+          if (esTexto(o) && o.text.indexOf("{nombre}") !== -1) {
+            cambios.push([o, o.text]);
+            o.set("text", o.text.split("{nombre}").join(nombre));
+          }
+        });
+      }
+      try {
+        return enTamanoReal(() => canvas.toDataURL({ format: "png", multiplier: 1 }));
+      } finally {
+        cambios.forEach((par) => par[0].set("text", par[1]));
+        canvas.renderAll();
+      }
+    }
+
+    function crearMiniatura() {
+      return enTamanoReal(() =>
+        canvas.toDataURL({ format: "jpeg", quality: 0.7, multiplier: 280 / Math.max(W, H) }));
+    }
+
+    // ---------- plantillas guardadas ----------
+    async function guardarPlantilla(comoNueva) {
+      const nombre = $("nombre-plantilla").value.trim();
+      if (!nombre) { aviso("Ponle un nombre a la plantilla", true); $("nombre-plantilla").focus(); return; }
+
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      try {
+        const r = await api("/api/plantillas", {
+          method: "POST",
+          body: JSON.stringify({
+            id: comoNueva ? null : plantillaActual,
+            nombre: nombre,
+            ancho: W,
+            alto: H,
+            lienzo: canvas.toJSON(),
+            miniatura: crearMiniatura()
+          })
+        });
+        plantillaActual = r.id;
+        aviso("Plantilla guardada");
+        cargarListaPlantillas();
+      } catch (e) {
+        aviso(e.message, true);
+      }
+    }
+
+    async function abrirPlantilla(id) {
+      try {
+        const p = await api("/api/plantillas/" + id);
+        plantillaActual = p.id;
+        $("nombre-plantilla").value = p.nombre;
+        historial = [];
+        pos = -1;
+        cargarEstado({ ancho: p.ancho, alto: p.alto, lienzo: p.lienzo }, function () {
+          guardarEstado();
+          aviso("Plantilla abierta");
+        });
+      } catch (e) {
+        aviso(e.message, true);
+      }
+    }
+
+    async function copiarLink(id) {
+      const url = location.origin + "/p/" + id;
+      try {
+        await navigator.clipboard.writeText(url);
+        aviso("Link copiado");
+      } catch (e) {
+        window.prompt("Copia este link:", url);
+      }
+    }
+
+    async function borrarPlantilla(p) {
+      if (!confirm("¿Eliminar la plantilla \"" + p.nombre + "\"?")) return;
+      try {
+        await api("/api/plantillas/" + p.id, { method: "DELETE" });
+        if (plantillaActual === p.id) plantillaActual = null;
+        aviso("Plantilla eliminada");
+        cargarListaPlantillas();
+      } catch (e) {
+        aviso(e.message, true);
+      }
+    }
+
+    function boton(texto, clase, alClic) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = clase;
+      b.textContent = texto;
+      b.addEventListener("click", alClic);
+      return b;
+    }
+
+    async function cargarListaPlantillas() {
+      let lista = [];
+      try { lista = await api("/api/plantillas"); } catch (e) { aviso(e.message, true); }
+
+      const ul = $("lista-plantillas");
+      ul.replaceChildren();
+      $("sin-plantillas").hidden = lista.length > 0;
+
+      lista.forEach((p) => {
+        const li = document.createElement("li");
+
+        const img = document.createElement("img");
+        img.alt = "";
+        if (p.miniatura) img.src = p.miniatura;
+
+        const datos = document.createElement("div");
+        datos.className = "datos";
+        const titulo = document.createElement("div");
+        titulo.className = "titulo";
+        titulo.textContent = p.nombre;
+        titulo.title = p.nombre;
+
+        const botones = document.createElement("div");
+        botones.className = "mini-botones";
+        botones.append(
+          boton("Abrir", "claro", () => abrirPlantilla(p.id)),
+          boton("Link", "sec", () => copiarLink(p.id)),
+          boton("\u2715", "peligro", () => borrarPlantilla(p))
+        );
+
+        datos.append(titulo, botones);
+        li.append(img, datos);
+        ul.append(li);
+      });
+    }
+
+    // ---------- eventos ----------
+    $("add-texto").addEventListener("click", () => {
+      const t = nuevoTexto("Escribe aquí", { top: H * 0.4 });
+      seleccionar(t);
+    });
+    $("add-saludo").addEventListener("click", () => seleccionar(nuevoTexto(SALUDO, { top: H * 0.4 })));
+
+    $("add-rect").addEventListener("click", () => {
+      const r = new fabric.Rect({ width: 360, height: 220, fill: "#25d366", rx: 24, ry: 24 });
+      centrar(r);
+      canvas.add(r);
+      seleccionar(r);
+    });
+
+    $("add-circulo").addEventListener("click", () => {
+      const c = new fabric.Circle({ radius: 130, fill: "#ffffff" });
+      centrar(c);
+      canvas.add(c);
+      seleccionar(c);
+    });
+
+    $("add-imagen").addEventListener("click", () => $("archivo-imagen").click());
+    $("archivo-imagen").addEventListener("change", async (ev) => {
+      const archivo = ev.target.files[0];
+      ev.target.value = "";
+      if (!archivo) return;
+      try {
+        const url = await leerImagen(archivo, 1400);
+        fabric.Image.fromURL(url, function (img) {
+          img.scaleToWidth(Math.min(img.width, W * 0.6));
+          centrar(img);
+          canvas.add(img);
+          seleccionar(img);
+        });
+      } catch (e) {
+        aviso(e.message, true);
+      }
+    });
+
+        // ---------- Cargar imagen por URL o Archivo (ImgBB) ----------
+    
+    // 1. Función para subir a ImgBB y obtener la URL limpia
+    async function subirImagenYObtenerURL(archivo) {
+      const formData = new FormData();
+      formData.append("image", archivo);
+      
+      // ⚠️ IMPORTANTE: Reemplaza esto con tu API Key real de imgbb.com
+      const API_KEY = "016ffb5f76a1e37c44193e9e87d9ee61"; 
+
+      try {
+        aviso("Subiendo imagen a la nube...");
+        const respuesta = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+          method: "POST",
+          body: formData
+        });
+        
+        const datos = await respuesta.json();
+        
+        if (datos.success) {
+          return datos.data.url; // URL directa lista para Fabric.js
+        } else {
+          throw new Error(datos.error?.message || "Error al subir");
+        }
+      } catch (error) {
+        console.error(error);
+        aviso("Error al subir la imagen: " + error.message, true);
+        return null;
+      }
+    }
+
+    // 2. Función reutilizable para agregar la imagen al canvas
+    function cargarImagenEnLienzo(url) {
+      fabric.Image.fromURL(url, function (img) {
+        if (!img || img.width === 0) {
+          aviso("No se pudo cargar. Verifica la URL o el CORS.", true);
+          return;
+        }
+        
+        img.scaleToWidth(Math.min(img.width, W * 0.6));
+        centrar(img);
+        canvas.add(img);
+        seleccionar(img);
+        
+        $("url-imagen").value = "";
+        $("url-imagen-container").hidden = true;
+        aviso("Imagen agregada al lienzo correctamente");
+      }, { crossOrigin: 'anonymous' }); // ⚠️ CRUCIAL para poder descargar después
+    }
+
+    // 3. Evento del botón "Mostrar campo URL"
+    $("add-imagen-url").addEventListener("click", () => {
+      const container = $("url-imagen-container");
+      container.hidden = !container.hidden;
+      if (!container.hidden) $("url-imagen").focus();
+    });
+
+    // 4. Evento del botón "Cargar al lienzo"
+    $("cargar-url").addEventListener("click", async () => {
+      const urlPegada = $("url-imagen").value.trim();
+      
+      // Opción A: El usuario pegó una URL directa (ej: https://ejemplo.com/foto.jpg)
+      if (urlPegada.startsWith("http")) {
+        cargarImagenEnLienzo(urlPegada);
+        return;
+      }
+
+      // Opción B: El usuario seleccionó un archivo local y queremos subirlo a ImgBB
+      const archivo = $("archivo-imagen").files[0]; 
+      
+      if (!archivo) {
+        aviso("Pega una URL válida o selecciona un archivo primero", true);
+        return;
+      }
+
+      const urlGenerada = await subirImagenYObtenerURL(archivo);
+      if (urlGenerada) {
+        cargarImagenEnLienzo(urlGenerada);
+        $("archivo-imagen").value = ""; // Limpiar input file tras subir
+      }
+    });
+
+    $("fondo").addEventListener("input", (ev) => {
+      canvas.setBackgroundColor(ev.target.value, function () { canvas.renderAll(); });
+    });
+    $("fondo").addEventListener("change", guardarEstado);
+
+    $("formato").addEventListener("change", (ev) => {
+      const partes = ev.target.value.split("x");
+      W = parseInt(partes[0], 10);
+      H = parseInt(partes[1], 10);
+      ajustarEscala();
+      guardarEstado();
+    });
+
+    $("deshacer").addEventListener("click", deshacer);
+    $("rehacer").addEventListener("click", rehacer);
+
+    // Propiedades
+    $("p-relleno").addEventListener("input", (ev) => aplicar("fill", ev.target.value));
+    $("p-relleno").addEventListener("change", guardarEstado);
+    $("p-opacidad").addEventListener("input", (ev) => aplicar("opacity", parseFloat(ev.target.value)));
+    $("p-opacidad").addEventListener("change", guardarEstado);
+    $("p-fuente").addEventListener("change", (ev) => { aplicar("fontFamily", ev.target.value); guardarEstado(); });
+    $("p-tam").addEventListener("input", (ev) => {
+      const v = parseInt(ev.target.value, 10);
+      if (v >= 8 && v <= 400) aplicar("fontSize", v);
+    });
+    $("p-tam").addEventListener("change", guardarEstado);
+    $("p-alinear").addEventListener("change", (ev) => { aplicar("textAlign", ev.target.value); guardarEstado(); });
+    $("p-negrita").addEventListener("click", () => {
+      const o = objetoActivo();
+      if (!o) return;
+      aplicar("fontWeight", o.fontWeight === "bold" ? "normal" : "bold");
+      mostrarPropiedades();
+      guardarEstado();
+    });
+    $("p-frente").addEventListener("click", () => {
+      const o = objetoActivo();
+      if (o) { canvas.bringToFront(o); canvas.requestRenderAll(); guardarEstado(); }
+    });
+    $("p-atras").addEventListener("click", () => {
+      const o = objetoActivo();
+      if (o) { canvas.sendToBack(o); canvas.requestRenderAll(); guardarEstado(); }
+    });
+    $("p-duplicar").addEventListener("click", duplicarSeleccion);
+    $("p-eliminar").addEventListener("click", eliminarSeleccion);
+
+    // Plantillas
+    $("guardar").addEventListener("click", () => guardarPlantilla(false));
+    $("guardar-nueva").addEventListener("click", () => guardarPlantilla(true));
+    $("nuevo").addEventListener("click", () => {
+      if (!confirm("¿Empezar un diseño nuevo? Se perderán los cambios sin guardar.")) return;
+      plantillaActual = null;
+      $("nombre-plantilla").value = "";
+      W = 1080; H = 1080;
+      $("formato").value = "1080x1080";
+      ajustarEscala();
+      iniciarDiseno();
+    });
+
+    $("descargar").addEventListener("click", () => {
+      const nombre = $("nombre-exportar").value.trim();
+      const url = exportarPNG(nombre);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bienvenida" + (nombre ? "_" + nombre.replace(/[^\w-]+/g, "_") : "") + ".png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    // Eventos del lienzo
+    canvas.on("object:added", guardarEstado);
+    canvas.on("object:removed", guardarEstado);
+    canvas.on("object:modified", guardarEstado);
+    canvas.on("text:editing:exited", guardarEstado);
+    canvas.on("selection:created", mostrarPropiedades);
+    canvas.on("selection:updated", mostrarPropiedades);
+    canvas.on("selection:cleared", mostrarPropiedades);
+
+    document.addEventListener("keydown", (e) => {
+      const tag = (document.activeElement && document.activeElement.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const o = canvas.getActiveObject();
+      if ((e.key === "Delete" || e.key === "Backspace") && o && !o.isEditing) {
+        eliminarSeleccion();
+        e.preventDefault();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        if (e.shiftKey) { rehacer(); } else { deshacer(); }
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener("resize", ajustarEscala);
+
+    // ---------- inicio ----------
+    ajustarEscala();
+    iniciarDiseno();
+    cargarListaPlantillas();
+
+    const abrir = new URLSearchParams(location.search).get("abrir");
+    if (abrir) abrirPlantilla(abrir);
+  })();
+  </script>
+</body>
+</html>

@@ -3,79 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bienvenida WhatsApp</title>
+  <title>Dashboard - Bienvenida WhatsApp</title>
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icono.svg') }}">
   <style>
     :root {
       --verde: #25d366;
       --verde-oscuro: #128c7e;
-      --fondo: #eef2f1;
+      --fondo: #f0f2f5;
       --tarjeta: #ffffff;
       --texto: #1f2933;
       --suave: #6b7a86;
       --borde: #d8e0e4;
       --burbuja: #dcf8c6;
+      --peligro: #d64545;
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #1f2933;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --fondo: #0f1a1f;
-        --tarjeta: #1a2730;
+        --fondo: #0b141a;
+        --tarjeta: #202c33;
         --texto: #e8eef1;
-        --suave: #93a4af;
-        --borde: #2c3d48;
+        --suave: #8696a0;
+        --borde: #2a3942;
         --burbuja: #005c4b;
+        --sidebar-bg: #111b21;
+        --sidebar-text: #e8eef1;
       }
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       background: var(--fondo);
       color: var(--texto);
+      display: flex;
     }
-    header {
-      background: linear-gradient(135deg, var(--verde-oscuro), var(--verde));
-      padding: 40px 16px 80px;
-      text-align: center;
-      color: #fff;
-    }
-    header img { width: 56px; height: 56px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
-    header h1 { margin: 12px 0 4px; font-size: 1.6rem; }
-    header p { margin: 0; opacity: .9; font-size: .95rem; }
 
-    main { max-width: 440px; margin: -50px auto 40px; padding: 0 16px; }
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--borde);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--borde);
+    }
+    .sidebar-header img { width: 40px; height: 40px; border-radius: 10px; }
+    .sidebar-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--verde-oscuro); }
+    
+    .nav-links { list-style: none; padding: 16px 12px; flex: 1; }
+    .nav-links li { margin-bottom: 4px; }
+    .nav-links a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { background: rgba(37, 211, 102, 0.1); color: var(--verde-oscuro); }
+    .nav-links a.activo { background: var(--verde); color: #05361a; font-weight: 600; }
+    .nav-icon { font-size: 1.2rem; }
+
+    /* --- MAIN CONTENT --- */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      padding: 32px;
+      max-width: 1600px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .top-bar h1 { font-size: 1.5rem; font-weight: 700; }
+    .top-bar p { color: var(--suave); margin-top: 4px; }
+
+    /* --- STATS CARDS --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--tarjeta);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid var(--borde);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(37, 211, 102, 0.15);
+      color: var(--verde-oscuro);
+      display: grid;
+      place-items: center;
+      font-size: 1.5rem;
+    }
+    .stat-info h3 { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .stat-info span { font-size: 0.85rem; color: var(--suave); font-weight: 500; }
+
+    /* --- DASHBOARD GRID (Form + List) --- */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 24px;
+      align-items: start;
+    }
+
     .tarjeta {
       background: var(--tarjeta);
       border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.10);
-      margin-bottom: 20px;
+      border: 1px solid var(--borde);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
-    .tarjeta h2 { margin: 0 0 16px; font-size: 1.1rem; }
+    .tarjeta h2 { 
+      margin: 0 0 20px; 
+      font-size: 1.1rem; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 8px; 
+    }
+    .contador {
+      font-size: .75rem; font-weight: 700;
+      background: var(--verde); color: #05361a;
+      padding: 3px 10px; border-radius: 999px;
+    }
 
+    /* --- FORMULARIO --- */
     label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
-    .ayuda { font-weight: 400; color: var(--suave); }
+    .ayuda { font-weight: 400; color: var(--suave); font-size: 0.8rem; }
     .campo { margin-bottom: 16px; }
-    input {
+    input, textarea {
       width: 100%;
       padding: 12px 14px;
-      font-size: 1rem;
+      font: inherit;
       color: var(--texto);
-      background: transparent;
+      background: var(--fondo);
       border: 1.5px solid var(--borde);
       border-radius: 10px;
       outline: none;
-      transition: border-color .15s, box-shadow .15s;
+      transition: all 0.15s;
     }
+    textarea { resize: vertical; min-height: 90px; line-height: 1.4; }
     input::placeholder { color: var(--suave); }
-    input:focus { border-color: var(--verde); box-shadow: 0 0 0 3px rgba(37,211,102,.25); }
+    input:focus, textarea:focus { border-color: var(--verde); background: var(--tarjeta); box-shadow: 0 0 0 3px rgba(37,211,102,0.15); }
+    input.invalido { border-color: var(--peligro); }
+    .error-campo { color: var(--peligro); font-size: .78rem; margin-top: 4px; min-height: 1em; }
 
     button, .btn {
       display: block;
       width: 100%;
       padding: 13px;
-      font-size: 1rem;
+      font: inherit;
       font-weight: 600;
       text-align: center;
       text-decoration: none;
@@ -84,93 +188,485 @@
       border: 0;
       border-radius: 10px;
       cursor: pointer;
-      transition: background .15s, transform .05s;
+      transition: all 0.15s;
     }
-    button:hover, .btn:hover { background: #0e7568; }
-    button:active, .btn:active { transform: scale(.99); }
-    .btn { margin-top: 14px; background: var(--verde); color: #05361a; }
+    button:hover, .btn:hover { background: #0e7568; transform: translateY(-1px); }
+    button:active, .btn:active { transform: translateY(0); }
+    button:disabled { opacity: .6; cursor: wait; transform: none; }
+    
+    .btn { background: var(--verde); color: #05361a; }
     .btn:hover { background: #1fbd5b; }
+    .btn.deshabilitado { opacity: .45; pointer-events: none; }
+    .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
 
+    /* --- VISTA PREVIA --- */
+    .vista-previa { 
+      background: #e5ddd5; /* Fondo clásico de WhatsApp */
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 24px; 
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+    @media (prefers-color-scheme: dark) {
+      .vista-previa { background-color: #0b141a; }
+    }
+    .vista-previa small { display: block; color: var(--suave); font-size: .75rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
     .burbuja {
       background: var(--burbuja);
-      color: var(--texto);
-      padding: 12px 14px;
-      border-radius: 12px 12px 2px 12px;
-      line-height: 1.45;
+      color: #111b21;
+      padding: 12px 16px;
+      border-radius: 0 12px 12px 12px;
+      line-height: 1.5;
       word-break: break-word;
+      white-space: pre-wrap;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      max-width: 90%;
+      position: relative;
+    }
+    .burbuja::before {
+      content: "";
+      position: absolute;
+      top: 0; left: -8px;
+      width: 0; height: 0;
+      border-top: 10px solid var(--burbuja);
+      border-left: 10px solid transparent;
     }
 
-    ul { list-style: none; margin: 0; padding: 0; }
-    li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--borde); }
+    details { margin-bottom: 18px; border: 1.5px dashed var(--borde); border-radius: 10px; padding: 12px 16px; background: rgba(37, 211, 102, 0.03); }
+    summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--verde-oscuro); }
+    details[open] summary { margin-bottom: 12px; }
+    .enlace-texto { background: none; color: var(--verde-oscuro); width: auto; display: inline; padding: 4px 0; font-size: .8rem; border: none; text-decoration: underline; cursor: pointer; }
+
+    /* --- LISTA DE CONTACTOS --- */
+    .buscador { margin-bottom: 16px; }
+    .lista-container { max-height: 500px; overflow-y: auto; padding-right: 4px; }
+    .lista-container::-webkit-scrollbar { width: 6px; }
+    .lista-container::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 3px; }
+    
+    ul { list-style: none; }
+    li { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--borde); transition: background 0.2s; }
     li:last-child { border-bottom: 0; }
+    li:hover { background: rgba(37, 211, 102, 0.05); margin: 0 -16px; padding-left: 16px; padding-right: 16px; border-radius: 8px; border-bottom-color: transparent; }
+    
     .avatar {
       flex: none;
-      width: 38px; height: 38px;
+      width: 44px; height: 44px;
       border-radius: 50%;
-      background: var(--verde);
-      color: #05361a;
+      background: linear-gradient(135deg, var(--verde), var(--verde-oscuro));
+      color: #fff;
       font-weight: 700;
+      font-size: 1.1rem;
       display: grid;
       place-items: center;
+      box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
     }
-    .nombre { font-weight: 600; }
-    .tel { color: var(--suave); font-size: .85rem; }
+    .info { flex: 1; min-width: 0; }
+    .nombre { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.95rem; }
+    .tel { color: var(--suave); font-size: .8rem; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+    
+    .fila-acciones { display: flex; gap: 8px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+    .btn-chico, .btn-icono {
+      width: auto;
+      padding: 8px 12px;
+      font-size: .75rem;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1.5px solid var(--borde);
+      background: transparent;
+      color: var(--texto);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-chico { background: var(--verde); color: #05361a; border-color: var(--verde); }
+    .btn-chico:hover { background: #1fbd5b; border-color: #1fbd5b; }
+    .btn-icono:hover { border-color: var(--verde-oscuro); color: var(--verde-oscuro); background: rgba(37, 211, 102, 0.05); }
+    .btn-icono.eliminar:hover { border-color: var(--peligro); color: var(--peligro); background: rgba(214, 69, 69, 0.05); }
+    
+    .vacio { text-align: center; color: var(--suave); padding: 40px 0; font-size: .9rem; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .vacio-icon { font-size: 2rem; opacity: 0.5; }
+
+    /* --- TOAST --- */
+    #toast {
+      position: fixed; left: 50%; bottom: 32px;
+      transform: translate(-50%, 20px);
+      background: #1f2933; color: #fff;
+      padding: 12px 24px; border-radius: 999px;
+      font-size: .9rem; font-weight: 500;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #toast.visible { opacity: 1; transform: translate(-50%, 0); }
+    #toast.error { background: var(--peligro); }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); width: 280px; }
+      .sidebar.abierta { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.2); }
+      .main-content { margin-left: 0; padding: 20px; }
+      .menu-toggle { display: block !important; }
+    }
+    .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--texto); cursor: pointer; padding: 8px; }
   </style>
 </head>
 <body>
-  <header>
-    <img src="{{ url_for('static', filename='icono.svg') }}" alt="Logo">
-    <h1>Bienvenida WhatsApp</h1>
-    <p>Ingresa un contacto y envía su mensaje de bienvenida</p>
-  </header>
 
-  <main>
-    <section class="tarjeta">
-      <h2>Nuevo contacto</h2>
-      <form method="post">
-        <div class="campo">
-          <label for="nombre">Nombre</label>
-          <input type="text" id="nombre" name="nombre" placeholder="Ej: María" required>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="{{ url_for('static', filename='icono.svg') }}" alt="Logo">
+      <h2>WA Manager</h2>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/" class="activo"><span class="nav-icon">👥</span> Contactos</a></li>
+      <li><a href="/editor"><span class="nav-icon">🎨</span> Editor de Plantillas</a></li>
+      <li><a href="#"><span class="nav-icon">⚙️</span> Configuración</a></li>
+    </ul>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="top-bar">
+      <div>
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('abierta')">☰</button>
+        <h1>Panel de Control</h1>
+        <p>Gestiona tus contactos y envía mensajes de bienvenida al instante.</p>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <h3 id="stat-total">0</h3>
+          <span>Contactos Totales</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎨</div>
+        <div class="stat-info">
+          <h3 id="stat-plantillas">1</h3>
+          <span>Plantilla Activa</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <h3>Listo</h3>
+          <span>Estado del Sistema</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD GRID -->
+    <div class="dashboard-grid">
+      
+      <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+      <section class="tarjeta">
+        <h2>📝 Nuevo / Editar Contacto</h2>
+
+        <div class="vista-previa">
+          <small>Vista previa del mensaje</small>
+          <div class="burbuja" id="burbuja"></div>
         </div>
 
-        <div class="campo">
-          <label for="telefono">Teléfono <span class="ayuda">(con código de país)</span></label>
-          <input type="tel" id="telefono" name="telefono" placeholder="56912345678" required>
-        </div>
-
-        <div class="campo">
-          <label for="link">Link <span class="ayuda">(opcional)</span></label>
-          <input type="url" id="link" name="link" placeholder="https://tusitio.cl">
-        </div>
-
-        <button type="submit">Generar bienvenida</button>
-      </form>
-    </section>
-
-    {% if enlace %}
-    <section class="tarjeta">
-      <h2>Vista previa del mensaje</h2>
-      <div class="burbuja">{{ mensaje }}</div>
-      <a class="btn" href="{{ enlace }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>
-    </section>
-    {% endif %}
-
-    {% if contactos %}
-    <section class="tarjeta">
-      <h2>Contactos ingresados</h2>
-      <ul>
-        {% for c in contactos %}
-        <li>
-          <div class="avatar">{{ c.nombre[0]|upper }}</div>
-          <div>
-            <div class="nombre">{{ c.nombre }}</div>
-            <div class="tel">+{{ c.telefono }}</div>
+        <form id="formulario" novalidate>
+          <input type="hidden" id="contacto-id" value=""> <!-- Para saber si editamos -->
+          
+          <div class="campo">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" placeholder="Ej: María Pérez" autocomplete="off" required>
           </div>
-        </li>
-        {% endfor %}
-      </ul>
-    </section>
-    {% endif %}
+
+          <div class="campo">
+            <label for="telefono">Teléfono <span class="ayuda">(con código de país, ej: 569...)</span></label>
+            <input type="tel" id="telefono" placeholder="56912345678" inputmode="numeric" autocomplete="off" required>
+            <div class="error-campo" id="error-telefono"></div>
+          </div>
+
+          <div class="campo">
+            <label for="link">Link <span class="ayuda">(opcional)</span></label>
+            <input type="url" id="link" placeholder="https://tusitio.cl" autocomplete="off">
+            <div class="error-campo" id="error-link"></div>
+          </div>
+
+          <details>
+            <summary>⚙️ Personalizar texto de bienvenida</summary>
+            <textarea id="plantilla" aria-label="Texto de bienvenida" style="margin-top: 12px;"></textarea>
+            <p class="ayuda" style="margin:8px 0 0;">Usa <b>{nombre}</b> donde quieras que aparezca el nombre.</p>
+            <button type="button" class="enlace-texto" id="restaurar">Restaurar texto original</button>
+          </details>
+
+          <div class="acciones">
+            <button type="submit" id="guardar">💾 Guardar Contacto</button>
+            <a class="btn deshabilitado" id="enviar-ahora" href="#" target="_blank" rel="noopener">🚀 Enviar ahora</a>
+          </div>
+          <button type="button" id="cancelar-edicion" style="margin-top: 12px; background: transparent; color: var(--suave); border: 1px solid var(--borde); display: none;">Cancelar edición</button>
+        </form>
+      </section>
+
+      <!-- COLUMNA DERECHA: LISTA -->
+      <section class="tarjeta">
+        <h2>📚 Mis Contactos <span class="contador" id="contador">0</span></h2>
+        <input type="search" id="buscar" class="buscador" placeholder="🔍 Buscar por nombre o teléfono..." autocomplete="off">
+        
+        <div class="lista-container">
+          <ul id="lista"></ul>
+          <p class="vacio" id="vacio" hidden>
+            <span class="vacio-icon">📭</span>
+            <span id="vacio-texto">Aún no hay contactos. Agrega el primero arriba.</span>
+          </p>
+        </div>
+      </section>
+
+    </div>
   </main>
+
+  <div id="toast" role="status"></div>
+
+
+  <script>
+    // Los emojis van como códigos \u{...} para que nunca se corrompan al copiar/pegar
+    const PLANTILLA_ORIGINAL = "¡Hola {nombre}! \u{1F44B} Bienvenido/a. Gracias por contactarnos \u{1F60A} ¿En qué te podemos ayudar?";
+    const EMOJI_LINK = "\u{1F517}";
+
+    const $ = (id) => document.getElementById(id);
+    let contactos = [];
+
+    // ---------- utilidades ----------
+    function soloDigitos(v) { return v.replace(/\D/g, ""); }
+
+    function leerPlantilla() {
+      try { return localStorage.getItem("plantilla") || PLANTILLA_ORIGINAL; }
+      catch (e) { return PLANTILLA_ORIGINAL; }
+    }
+    function guardarPlantilla(texto) {
+      try { localStorage.setItem("plantilla", texto); } catch (e) { /* sin almacenamiento: se ignora */ }
+    }
+
+    function construirMensaje(nombre, link) {
+      let m = $("plantilla").value.split("{nombre}").join(nombre || "\u2026");
+      if (link) m += " " + EMOJI_LINK + " Conoce más aquí: " + link;
+      return m;
+    }
+
+    function enlaceWhatsApp(telefono, mensaje) {
+      return "https://web.whatsapp.com/send?phone=" + telefono + "&text=" + encodeURIComponent(mensaje);
+    }
+
+    function linkValido(v) { return v === "" || /^https?:\/\/\S+$/i.test(v); }
+    function telefonoValido(t) { return t.length >= 8 && t.length <= 15; }
+
+    let temporizadorToast;
+    function aviso(texto, esError) {
+      const t = $("toast");
+      t.textContent = texto;
+      t.className = "visible" + (esError ? " error" : "");
+      clearTimeout(temporizadorToast);
+      temporizadorToast = setTimeout(() => { t.className = ""; }, 2600);
+    }
+
+    async function api(url, opciones) {
+      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opciones));
+      const datos = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(datos.error || "Ocurrió un error inesperado.");
+      return datos;
+    }
+
+    // ---------- vista previa y validación en vivo ----------
+    function actualizarVistaPrevia() {
+      const nombre = $("nombre").value.trim();
+      const telefono = soloDigitos($("telefono").value);
+      const link = $("link").value.trim();
+
+      $("burbuja").textContent = construirMensaje(nombre, link);
+
+      // Errores de campo solo cuando el usuario ya escribió algo
+      const telMal = telefono !== "" && !telefonoValido(telefono);
+      $("telefono").classList.toggle("invalido", telMal);
+      $("error-telefono").textContent = telMal ? "Debe tener entre 8 y 15 dígitos." : "";
+
+      const linkMal = !linkValido(link);
+      $("link").classList.toggle("invalido", linkMal);
+      $("error-link").textContent = linkMal ? "Debe empezar con http:// o https://" : "";
+
+      // Botón "Enviar ahora": solo activo si el formulario es válido
+      const boton = $("enviar-ahora");
+      const listo = nombre !== "" && telefonoValido(telefono) && !linkMal;
+      boton.classList.toggle("deshabilitado", !listo);
+      boton.href = listo ? enlaceWhatsApp(telefono, construirMensaje(nombre, link)) : "#";
+    }
+
+    // ---------- lista de contactos ----------
+    function crearBoton(texto, clase, titulo, alHacerClic) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn-icono " + clase;
+      b.textContent = texto;
+      b.title = titulo;
+      b.addEventListener("click", alHacerClic);
+      return b;
+    }
+
+       function dibujarLista() {
+      const q = $("buscar").value.trim().toLowerCase();
+      const visibles = contactos.filter((c) =>
+        c.nombre.toLowerCase().includes(q) || c.telefono.includes(soloDigitos(q) || "\u0000"));
+
+      $("contador").textContent = contactos.length;
+      const lista = $("lista");
+      lista.replaceChildren();
+
+      const vacio = $("vacio");
+      if (visibles.length === 0) {
+        vacio.hidden = false;
+        vacio.textContent = contactos.length === 0
+          ? "Aún no hay contactos. Agrega el primero arriba."
+          : "Ningún contacto coincide con la búsqueda.";
+        return;
+      }
+      vacio.hidden = true;
+
+      visibles.forEach((c) => {
+        const mensaje = construirMensaje(c.nombre, c.link);
+
+        const li = document.createElement("li");
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = c.nombre.charAt(0).toUpperCase();
+
+        const info = document.createElement("div");
+        info.className = "info";
+        const nombre = document.createElement("div");
+        nombre.className = "nombre";
+        nombre.textContent = c.nombre;
+        const tel = document.createElement("div");
+        tel.className = "tel";
+        tel.textContent = "+" + c.telefono;
+        info.append(nombre, tel);
+
+        const acciones = document.createElement("div");
+        acciones.className = "fila-acciones";
+
+        // 1. Botón para cargar en el formulario (NUEVO)
+        const editar = crearBoton("Editar", "", "Cargar en el formulario", () => {
+          $("nombre").value = c.nombre;
+          $("telefono").value = c.telefono;
+          $("link").value = c.link || "";
+          actualizarVistaPrevia(); // Actualiza la burbuja de vista previa
+          $("nombre").focus();     // Pone el cursor en el nombre
+          window.scrollTo({ top: 0, behavior: "smooth" }); // Sube suavemente al formulario
+        });
+
+        // 2. Botón WhatsApp
+        const wa = document.createElement("a");
+        wa.className = "btn-chico";
+        wa.textContent = "WhatsApp";
+        wa.href = enlaceWhatsApp(c.telefono, mensaje);
+        wa.target = "_blank";
+        wa.rel = "noopener";
+
+        // 3. Botón Copiar
+        const copiar = crearBoton("Copiar", "", "Copiar el mensaje", async () => {
+          try { await navigator.clipboard.writeText(mensaje); aviso("Mensaje copiado"); }
+          catch (e) { aviso("No se pudo copiar el mensaje", true); }
+        });
+
+        // 4. Botón Eliminar
+        const borrar = crearBoton("\u2715", "eliminar", "Eliminar contacto", () => eliminarContacto(c));
+
+        // Agregamos los botones en el orden deseado
+        acciones.append(editar, wa, copiar, borrar);
+        li.append(avatar, info, acciones);
+        lista.append(li);
+      });
+    }
+
+    async function cargarContactos() {
+      try {
+        contactos = await api("/api/contactos");
+      } catch (e) {
+        aviso(e.message, true);
+      }
+      dibujarLista();
+    }
+
+    async function eliminarContacto(c) {
+      if (!confirm("¿Eliminar a " + c.nombre + "?")) return;
+      try {
+        await api("/api/contactos/" + c.id, { method: "DELETE" });
+        contactos = contactos.filter((x) => x.id !== c.id);
+        dibujarLista();
+        aviso("Contacto eliminado");
+      } catch (e) {
+        aviso(e.message, true);
+      }
+    }
+
+    // ---------- guardar ----------
+    $("formulario").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const nombre = $("nombre").value.trim();
+      const telefono = soloDigitos($("telefono").value);
+      const link = $("link").value.trim();
+
+      if (!nombre) { aviso("Escribe un nombre", true); $("nombre").focus(); return; }
+      if (!telefonoValido(telefono)) { aviso("Revisa el teléfono", true); $("telefono").focus(); return; }
+      if (!linkValido(link)) { aviso("Revisa el link", true); $("link").focus(); return; }
+
+      const boton = $("guardar");
+      boton.disabled = true;
+      try {
+        const nuevo = await api("/api/contactos", {
+          method: "POST",
+          body: JSON.stringify({ nombre, telefono, link }),
+        });
+        contactos.push(nuevo);
+        dibujarLista();
+        $("formulario").reset();
+        actualizarVistaPrevia();
+        $("nombre").focus();
+        aviso("Contacto guardado");
+      } catch (e) {
+        aviso(e.message, true);
+      } finally {
+        boton.disabled = false;
+      }
+    });
+
+    // ---------- eventos ----------
+    ["nombre", "telefono", "link"].forEach((id) => $(id).addEventListener("input", actualizarVistaPrevia));
+
+    $("plantilla").addEventListener("input", () => {
+      guardarPlantilla($("plantilla").value);
+      actualizarVistaPrevia();
+      dibujarLista();   // los botones de cada contacto usan el texto actualizado
+    });
+
+    $("restaurar").addEventListener("click", () => {
+      $("plantilla").value = PLANTILLA_ORIGINAL;
+      guardarPlantilla(PLANTILLA_ORIGINAL);
+      actualizarVistaPrevia();
+      dibujarLista();
+    });
+
+    $("buscar").addEventListener("input", dibujarLista);
+
+    // ---------- inicio ----------
+    $("plantilla").value = leerPlantilla();
+    actualizarVistaPrevia();
+    cargarContactos();
+  </script>
 </body>
 </html>
