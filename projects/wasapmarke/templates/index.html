@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bienvenida WhatsApp</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 420px; margin: 40px auto; padding: 0 16px; }
+    input, button { width: 100%; padding: 10px; margin: 6px 0 14px; box-sizing: border-box; }
+    button, .btn { background: #25d366; color: #fff; border: 0; border-radius: 6px; cursor: pointer; }
+    .btn { display: block; text-align: center; padding: 12px; text-decoration: none; }
+    .resultado { background: #f0f0f0; padding: 12px; border-radius: 6px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Nuevo contacto</h2>
+
+  <form method="post">
+    <label>Nombre</label>
+    <input type="text" name="nombre" required>
+
+    <label>Teléfono (con código de país, ej: 56912345678)</label>
+    <input type="tel" name="telefono" required>
+    <label>Link (opcional)</label>
+<input type="url" name="link" placeholder="https://tusitio.cl">
+
+    <button type="submit">Generar bienvenida</button>
+  </form>
+
+  {% if enlace %}
+  <div class="resultado">
+    <p><strong>Mensaje:</strong></p>
+    <p>{{ mensaje }}</p>
+    <a class="btn" href="{{ enlace }}" target="_blank">Enviar por WhatsApp</a>
+  </div>
+  {% endif %}
+
+  {% if contactos %}
+  <h3>Contactos ingresados</h3>
+  <ul>
+    {% for c in contactos %}
+      <li>{{ c.nombre }} - {{ c.telefono }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</body>
+</html>
