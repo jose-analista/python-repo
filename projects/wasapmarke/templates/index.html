@@ -323,8 +323,8 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <img src="{{ url_for('static', filename='icono.svg') }}" alt="Logo">
-      <h2>WA Manager</h2>
+      <!-- <img src="{{ url_for('static', filename='icono.svg') }}" alt="Logo"> -->
+      <h2>Wasapmarke</h2>
     </div>
     <ul class="nav-links">
       <li><a href="/" class="activo"><span class="nav-icon">👥</span> Contactos</a></li>
@@ -433,6 +433,269 @@
   </main>
 
   <div id="toast" role="status"></div>
+
+  <script>
+    const PLANTILLA_ORIGINAL = "¡Hola {nombre}! 👋 Bienvenido/a. Gracias por contactarnos 😊 ¿En qué te podemos ayudar?";
+    const EMOJI_LINK = "🔗";
+
+    const $ = (id) => document.getElementById(id);
+    let contactos = [];
+    let modoEdicion = false;
+
+    // ---------- utilidades ----------
+    function soloDigitos(v) { return v.replace(/\D/g, ""); }
+
+    function leerPlantilla() {
+      try { return localStorage.getItem("plantilla") || PLANTILLA_ORIGINAL; }
+      catch (e) { return PLANTILLA_ORIGINAL; }
+    }
+    function guardarPlantilla(texto) {
+      try { localStorage.setItem("plantilla", texto); } catch (e) {}
+    }
+
+    function construirMensaje(nombre, link) {
+      let m = $("plantilla").value.split("{nombre}").join(nombre || "…");
+      if (link) m += "\n\n" + EMOJI_LINK + " Conoce más aquí: " + link;
+      return m;
+    }
+
+    function enlaceWhatsApp(telefono, mensaje) {
+      return "https://web.whatsapp.com/send?phone=" + telefono + "&text=" + encodeURIComponent(mensaje);
+    }
+
+    function linkValido(v) { return v === "" || /^https?:\/\/\S+$/i.test(v); }
+    function telefonoValido(t) { return t.length >= 8 && t.length <= 15; }
+
+    let temporizadorToast;
+    function aviso(texto, esError) {
+      const t = $("toast");
+      t.textContent = (esError ? "⚠️ " : "✅ ") + texto;
+      t.className = "visible" + (esError ? " error" : "");
+      clearTimeout(temporizadorToast);
+      temporizadorToast = setTimeout(() => { t.className = ""; }, 3000);
+    }
+
+    async function api(url, opciones) {
+      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opciones));
+      const datos = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(datos.error || "Ocurrió un error inesperado.");
+      return datos;
+    }
+
+    // ---------- vista previa y validación ----------
+    function actualizarVistaPrevia() {
+      const nombre = $("nombre").value.trim();
+      const telefono = soloDigitos($("telefono").value);
+      const link = $("link").value.trim();
+
+      $("burbuja").textContent = construirMensaje(nombre, link);
+
+      const telMal = telefono !== "" && !telefonoValido(telefono);
+      $("telefono").classList.toggle("invalido", telMal);
+      $("error-telefono").textContent = telMal ? "Debe tener entre 8 y 15 dígitos." : "";
+
+      const linkMal = !linkValido(link);
+      $("link").classList.toggle("invalido", linkMal);
+      $("error-link").textContent = linkMal ? "Debe empezar con http:// o https://" : "";
+
+      const boton = $("enviar-ahora");
+      const listo = nombre !== "" && telefonoValido(telefono) && !linkMal;
+      boton.classList.toggle("deshabilitado", !listo);
+      boton.href = listo ? enlaceWhatsApp(telefono, construirMensaje(nombre, link)) : "#";
+    }
+
+    // ---------- lista de contactos ----------
+    function crearBoton(texto, clase, titulo, alHacerClic) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn-icono " + clase;
+      b.textContent = texto;
+      b.title = titulo;
+      b.addEventListener("click", alHacerClic);
+      return b;
+    }
+
+    function dibujarLista() {
+      const q = $("buscar").value.trim().toLowerCase();
+      const visibles = contactos.filter((c) =>
+        c.nombre.toLowerCase().includes(q) || c.telefono.includes(soloDigitos(q) || "\u0000"));
+
+      $("contador").textContent = contactos.length;
+      $("stat-total").textContent = contactos.length; // Actualizar stat card
+      
+      const lista = $("lista");
+      lista.replaceChildren();
+
+      const vacio = $("vacio");
+      const vacioTexto = $("vacio-texto");
+      if (visibles.length === 0) {
+        vacio.hidden = false;
+        vacioTexto.textContent = contactos.length === 0
+          ? "Aún no hay contactos. Agrega el primero arriba."
+          : "Ningún contacto coincide con la búsqueda.";
+        return;
+      }
+      vacio.hidden = true;
+
+      visibles.forEach((c) => {
+        const mensaje = construirMensaje(c.nombre, c.link);
+        const li = document.createElement("li");
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = c.nombre.charAt(0).toUpperCase();
+
+        const info = document.createElement("div");
+        info.className = "info";
+        const nombre = document.createElement("div");
+        nombre.className = "nombre";
+        nombre.textContent = c.nombre;
+        const tel = document.createElement("div");
+        tel.className = "tel";
+        tel.textContent = "📱 +" + c.telefono;
+        info.append(nombre, tel);
+
+        const acciones = document.createElement("div");
+        acciones.className = "fila-acciones";
+
+        // Botón EDITAR (Carga los datos arriba)
+        const editar = crearBoton("✏️ Editar", "", "Cargar en el formulario", () => {
+          $("contacto-id").value = c.id;
+          $("nombre").value = c.nombre;
+          $("telefono").value = c.telefono;
+          $("link").value = c.link || "";
+          
+          modoEdicion = true;
+          $("guardar").textContent = "💾 Actualizar Contacto";
+          $("cancelar-edicion").style.display = "block";
+          
+          actualizarVistaPrevia();
+          $("nombre").focus();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        const wa = document.createElement("a");
+        wa.className = "btn-chico";
+        wa.textContent = "WhatsApp";
+        wa.href = enlaceWhatsApp(c.telefono, mensaje);
+        wa.target = "_blank";
+        wa.rel = "noopener";
+
+        const copiar = crearBoton("📋 Copiar", "", "Copiar mensaje", async () => {
+          try { await navigator.clipboard.writeText(mensaje); aviso("Mensaje copiado"); }
+          catch (e) { aviso("No se pudo copiar", true); }
+        });
+
+        const borrar = crearBoton("🗑️", "eliminar", "Eliminar contacto", () => eliminarContacto(c));
+
+        acciones.append(editar, wa, copiar, borrar);
+        li.append(avatar, info, acciones);
+        lista.append(li);
+      });
+    }
+
+    async function cargarContactos() {
+      try {
+        contactos = await api("/api/contactos");
+      } catch (e) {
+        aviso(e.message, true);
+      }
+      dibujarLista();
+    }
+
+    async function eliminarContacto(c) {
+      if (!confirm("¿Eliminar a " + c.nombre + "?")) return;
+      try {
+        await api("/api/contactos/" + c.id, { method: "DELETE" });
+        contactos = contactos.filter((x) => x.id !== c.id);
+        dibujarLista();
+        aviso("Contacto eliminado");
+        
+        // Si estábamos editando el que borramos, limpiar formulario
+        if ($("contacto-id").value === c.id) cancelarEdicion();
+      } catch (e) {
+        aviso(e.message, true);
+      }
+    }
+
+    function cancelarEdicion() {
+      modoEdicion = false;
+      $("contacto-id").value = "";
+      $("formulario").reset();
+      $("guardar").textContent = "💾 Guardar Contacto";
+      $("cancelar-edicion").style.display = "none";
+      actualizarVistaPrevia();
+    }
+
+    // ---------- guardar / actualizar ----------
+    $("formulario").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const id = $("contacto-id").value;
+      const nombre = $("nombre").value.trim();
+      const telefono = soloDigitos($("telefono").value);
+      const link = $("link").value.trim();
+
+      if (!nombre) { aviso("Escribe un nombre", true); $("nombre").focus(); return; }
+      if (!telefonoValido(telefono)) { aviso("Revisa el teléfono", true); $("telefono").focus(); return; }
+      if (!linkValido(link)) { aviso("Revisa el link", true); $("link").focus(); return; }
+
+      const boton = $("guardar");
+      boton.disabled = true;
+      try {
+        if (modoEdicion && id) {
+          // Actualizar existente (necesitarás esta ruta en tu Flask si la implementas, 
+          // o puedes borrar y crear de nuevo. Por simplicidad, aquí simulamos la actualización)
+          // Opción simple: eliminar el viejo y crear el nuevo con mismo ID o dejar que Flask lo maneje.
+          // Para este ejemplo, haremos un PUT si tu backend lo soporta, o simplemente recargamos.
+          await api("/api/contactos/" + id, {
+            method: "PUT", // Asegúrate de tener esta ruta en Flask, o usa DELETE + POST
+            body: JSON.stringify({ nombre, telefono, link }),
+          });
+          aviso("Contacto actualizado");
+        } else {
+          const nuevo = await api("/api/contactos", {
+            method: "POST",
+            body: JSON.stringify({ nombre, telefono, link }),
+          });
+          contactos.push(nuevo);
+          aviso("Contacto guardado");
+        }
+        
+        cancelarEdicion();
+        await cargarContactos();
+        $("nombre").focus();
+      } catch (e) {
+        aviso(e.message, true);
+      } finally {
+        boton.disabled = false;
+      }
+    });
+
+    $("cancelar-edicion").addEventListener("click", cancelarEdicion);
+
+    // ---------- eventos ----------
+    ["nombre", "telefono", "link"].forEach((id) => $(id).addEventListener("input", actualizarVistaPrevia));
+
+    $("plantilla").addEventListener("input", () => {
+      guardarPlantilla($("plantilla").value);
+      actualizarVistaPrevia();
+      dibujarLista();
+    });
+
+    $("restaurar").addEventListener("click", () => {
+      $("plantilla").value = PLANTILLA_ORIGINAL;
+      guardarPlantilla(PLANTILLA_ORIGINAL);
+      actualizarVistaPrevia();
+      dibujarLista();
+    });
+
+    $("buscar").addEventListener("input", dibujarLista);
+
+    // ---------- inicio ----------
+    $("plantilla").value = leerPlantilla();
+    actualizarVistaPrevia();
+    cargarContactos();
+  </script>
 
 
   <script>
