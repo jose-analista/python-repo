@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,597 +8,40 @@
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icono.svg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --tinta: #13231c;
-      --papel: #eef2ec;
-      --superficie: #ffffff;
-      --verde: #0f7a43;
-      --verde-osc: #0a5c32;
-      --verde-claro: #d9efe1;
-      --suave: #5b6b62;
-      --borde: #d8e0d6;
-      --peligro: #b42318;
-      --peligro-claro: #fde8e6;
-      --aviso: #8a5300;
-      --aviso-claro: #fdf0d5;
-      --chat: #0b3d2a;
-      --burbuja: #d9fdd3;
-      --titulos: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
-      --cuerpo: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--papel);
-      color: var(--tinta);
-      font-family: var(--cuerpo);
-      font-size: 14px;
-      line-height: 1.55;
-    }
-
-    button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
-    [hidden] { display: none !important; }
-
-    :focus-visible {
-      outline: 3px solid rgba(15, 122, 67, .45);
-      outline-offset: 2px;
-    }
-
-    .ico {
-      width: 18px;
-      height: 18px;
-      flex: none;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    /* ---------- Barra lateral ---------- */
-    .sidebar {
-      position: fixed;
-      inset: 0 auto 0 0;
-      z-index: 1000;
-      width: 250px;
-      padding: 26px 16px;
-      background: var(--superficie);
-      border-right: 1px solid var(--borde);
-      transition: transform .25s ease;
-    }
-
-    .marca {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 2px 12px 28px;
-    }
-
-    .marca-logo {
-      display: grid;
-      place-items: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 9px 9px 9px 2px;
-      background: var(--verde);
-      color: #fff;
-      font-family: var(--titulos);
-      font-weight: 800;
-      font-size: 16px;
-    }
-
-    .marca h2 {
-      margin: 0;
-      font-family: var(--titulos);
-      font-size: 21px;
-      font-weight: 800;
-      letter-spacing: -.6px;
-    }
-
-    .nav-links {
-      display: grid;
-      gap: 4px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .nav-links a {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 14px;
-      border-radius: 10px;
-      color: var(--suave);
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .nav-links a:hover { background: var(--papel); color: var(--tinta); }
-    .nav-links a.activo { background: var(--verde-claro); color: var(--verde-osc); }
-    .nav-icon { width: 24px; text-align: center; font-size: 18px; }
-
-    /* ---------- Contenido ---------- */
-    .main-content {
-      min-height: 100vh;
-      margin-left: 250px;
-      padding: 32px 36px 48px;
-    }
-
-    .cabecera {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 16px 24px;
-      margin-bottom: 22px;
-    }
-
-    .cabecera h1 {
-      margin: 0 0 4px;
-      font-family: var(--titulos);
-      font-size: clamp(28px, 3.4vw, 38px);
-      font-weight: 800;
-      letter-spacing: -1.3px;
-      line-height: 1.1;
-    }
-
-    .cabecera p { margin: 0; max-width: 46ch; color: var(--suave); }
-
-    .menu-toggle {
-      display: none;
-      width: 42px;
-      height: 42px;
-      margin-bottom: 12px;
-      border: 1px solid var(--borde);
-      border-radius: 10px;
-      background: #fff;
-      font-size: 20px;
-    }
-
-    .herramientas { display: flex; flex-wrap: wrap; gap: 10px; }
-
-    /* ---------- Botones ---------- */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 42px;
-      padding: 9px 16px;
-      border: 1px solid transparent;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 13px;
-      text-align: center;
-      text-decoration: none;
-      transition: background .15s ease, border-color .15s ease;
-    }
-
-    .btn-primario { background: var(--verde); color: #fff; }
-    .btn-primario:hover:not(:disabled) { background: var(--verde-osc); }
-    .btn-oscuro { background: var(--tinta); color: #fff; }
-    .btn-oscuro:hover:not(.deshabilitado) { background: #2b3f35; }
-    .btn-borde { background: #fff; color: var(--tinta); border-color: var(--borde); }
-    .btn-borde:hover { border-color: #aebbaa; background: #fafcf9; }
-    .btn:disabled, .btn.deshabilitado { opacity: .45; cursor: not-allowed; pointer-events: none; }
-
-    .ib {
-      display: inline-grid;
-      place-items: center;
-      width: 34px;
-      height: 34px;
-      border: 1px solid var(--borde);
-      border-radius: 9px;
-      background: #fff;
-      color: var(--suave);
-    }
-
-    .ib:hover { color: var(--tinta); border-color: #aebbaa; }
-    .ib.eliminar:hover { color: var(--peligro); border-color: #f0b5af; background: var(--peligro-claro); }
-
-    /* ---------- Menú exportar ---------- */
-    .menu { position: relative; }
-    .menu > summary { list-style: none; cursor: pointer; }
-    .menu > summary::-webkit-details-marker { display: none; }
-
-    .menu-lista {
-      position: absolute;
-      right: 0;
-      top: calc(100% + 6px);
-      z-index: 50;
-      width: 290px;
-      padding: 6px;
-      border: 1px solid var(--borde);
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 14px 34px rgba(19, 35, 28, .14);
-    }
-
-    .menu-lista a {
-      display: block;
-      padding: 10px 12px;
-      border-radius: 8px;
-      color: var(--tinta);
-      text-decoration: none;
-    }
-
-    .menu-lista a:hover { background: var(--papel); }
-    .menu-lista b { display: block; font-size: 13px; }
-    .menu-lista small { color: var(--suave); font-size: 12px; }
-
-    /* ---------- Resumen ---------- */
-    .resumen {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      margin-bottom: 22px;
-      border: 1px solid var(--borde);
-      border-radius: 14px;
-      background: var(--superficie);
-    }
-
-    .resumen > div { padding: 16px 22px; }
-    .resumen > div + div { border-left: 1px solid var(--borde); }
-
-    .resumen strong {
-      display: block;
-      font-family: var(--titulos);
-      font-size: 28px;
-      font-weight: 700;
-      line-height: 1.15;
-      letter-spacing: -.8px;
-    }
-
-    .resumen span { color: var(--suave); font-size: 13px; }
-
-    /* ---------- Distribución ---------- */
-    .grid {
-      display: grid;
-      grid-template-columns: 400px minmax(0, 1fr);
-      align-items: start;
-      gap: 22px;
-    }
-
-    .lateral { position: sticky; top: 22px; display: grid; gap: 16px; }
-
-    .tarjeta {
-      min-width: 0;
-      padding: 24px;
-      border: 1px solid var(--borde);
-      border-radius: 14px;
-      background: var(--superficie);
-    }
-
-    .tarjeta h2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 18px;
-      font-family: var(--titulos);
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -.5px;
-    }
-
-    /* ---------- Vista previa tipo chat ---------- */
-    .chat {
-      padding: 16px 16px 18px;
-      border-radius: 14px;
-      background-color: var(--chat);
-      background-image: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px);
-      background-size: 14px 14px;
-    }
-
-    .chat small {
-      display: block;
-      margin-bottom: 10px;
-      color: #a8d5bd;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .burbuja {
-      position: relative;
-      width: fit-content;
-      max-width: 92%;
-      margin-left: auto;
-      padding: 9px 12px 20px;
-      border-radius: 12px 12px 3px 12px;
-      background: var(--burbuja);
-      color: #111b15;
-      font-size: 13.5px;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .burbuja-hora {
-      position: absolute;
-      right: 10px;
-      bottom: 4px;
-      color: #5d7a66;
-      font-size: 10.5px;
-    }
-
-    /* ---------- Formulario ---------- */
-    .campo { margin-bottom: 16px; }
-
-    .campo label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .ayuda { color: var(--suave); font-size: 12px; font-weight: 400; }
-
-    .campo input, .buscador input, textarea {
-      width: 100%;
-      min-width: 0;
-      padding: 11px 13px;
-      border: 1px solid #cdd7ca;
-      border-radius: 10px;
-      background: #fff;
-      color: var(--tinta);
-      outline: none;
-    }
-
-    .campo input:focus, .buscador input:focus, textarea:focus {
-      border-color: var(--verde);
-      box-shadow: 0 0 0 4px rgba(15, 122, 67, .12);
-    }
-
-    input.invalido { border-color: var(--peligro) !important; }
-    .error-campo { margin-top: 4px; color: var(--peligro); font-size: 12px; }
-
-    details.personalizar {
-      margin: 4px 0 18px;
-      padding: 12px 14px;
-      border: 1px solid var(--borde);
-      border-radius: 10px;
-      background: #f7faf6;
-    }
-
-    details.personalizar summary { cursor: pointer; font-weight: 700; font-size: 13px; }
-    details.personalizar textarea { min-height: 110px; margin-top: 12px; resize: vertical; line-height: 1.6; }
-
-    .enlace-texto {
-      margin-top: 8px;
-      padding: 0;
-      border: 0;
-      background: none;
-      color: var(--verde-osc);
-      font-weight: 700;
-      font-size: 12px;
-    }
-
-    .enlace-texto:hover { text-decoration: underline; }
-
-    .acciones { display: flex; flex-wrap: wrap; gap: 10px; }
-    .acciones .btn { flex: 1 1 140px; }
-    #cancelar-edicion { width: 100%; margin-top: 10px; }
-
-    /* ---------- Lista ---------- */
-    .lista-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-    .lista-cab h2 { margin: 0; }
-
-    .contador {
-      display: inline-grid;
-      place-items: center;
-      min-width: 28px;
-      height: 26px;
-      padding: 0 8px;
-      border-radius: 8px;
-      background: var(--verde-claro);
-      color: var(--verde-osc);
-      font-family: var(--cuerpo);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .buscador { position: relative; margin-bottom: 14px; }
-    .buscador .ico { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--suave); pointer-events: none; }
-    .buscador input { padding-left: 40px; }
-
-    .lista-container { min-height: 200px; max-height: 640px; overflow-y: auto; scrollbar-width: thin; }
-
-    #lista { display: grid; margin: 0; padding: 0; list-style: none; }
-
-    #lista > li {
-      display: grid;
-      grid-template-columns: 42px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 6px 14px;
-      padding: 12px 4px;
-      border-bottom: 1px solid var(--borde);
-    }
-
-    #lista > li:last-child { border-bottom: 0; }
-
-    .avatar {
-      display: grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--verde-claro);
-      color: var(--verde-osc);
-      font-family: var(--titulos);
-      font-size: 17px;
-      font-weight: 700;
-    }
-
-    .info { min-width: 0; }
-    .nombre { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; color: var(--suave); font-size: 12.5px; }
-
-    .chip-link {
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--verde-osc);
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .chip-link:hover { text-decoration: underline; }
-
-    .fila-acciones { display: flex; align-items: center; gap: 6px; }
-
-    .btn-wa {
-      display: inline-flex;
-      align-items: center;
-      height: 34px;
-      padding: 0 13px;
-      border-radius: 9px;
-      background: var(--verde);
-      color: #fff;
-      font-size: 12.5px;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    .btn-wa:hover { background: var(--verde-osc); }
-
-    .vacio { padding: 44px 16px; color: var(--suave); text-align: center; }
-    .vacio b { display: block; margin-bottom: 4px; color: var(--tinta); font-size: 15px; }
-
-    /* ---------- Diálogo de importación ---------- */
-    .modal {
-      width: min(560px, calc(100vw - 24px));
-      max-height: calc(100vh - 32px);
-      padding: 0;
-      border: 0;
-      border-radius: 16px;
-      background: #fff;
-      color: var(--tinta);
-      box-shadow: 0 24px 60px rgba(19, 35, 28, .3);
-    }
-
-    .modal::backdrop { background: rgba(19, 35, 28, .5); }
-    .modal[open] { display: flex; flex-direction: column; }
-
-    .modal-cab, .modal-pie { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; }
-    .modal-cab { border-bottom: 1px solid var(--borde); }
-    .modal-cab h2 { margin: 0; font-family: var(--titulos); font-size: 20px; letter-spacing: -.5px; }
-    .modal-pie { justify-content: flex-end; border-top: 1px solid var(--borde); }
-    .modal-cuerpo { padding: 20px 22px; overflow-y: auto; }
-
-    .zona {
-      display: grid;
-      justify-items: center;
-      gap: 4px;
-      padding: 28px 16px;
-      border: 2px dashed #b9c8b6;
-      border-radius: 12px;
-      background: #f7faf6;
-      color: var(--suave);
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .15s ease, background .15s ease;
-    }
-
-    .zona:hover, .zona.arrastrando { border-color: var(--verde); background: var(--verde-claro); }
-    .zona strong { color: var(--tinta); font-size: 15px; }
-    .zona .ico { width: 28px; height: 28px; color: var(--verde); }
-
-    .modal-cuerpo .ayuda { margin: 10px 0 0; }
-    .modal-cuerpo .ayuda a { color: var(--verde-osc); font-weight: 600; }
-
-    .estado-import { margin-top: 16px; padding: 12px 14px; border-radius: 10px; background: var(--papel); font-weight: 600; }
-    .estado-import.error { background: var(--peligro-claro); color: var(--peligro); }
-
-    .cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 14px; }
-    .cifra { padding: 12px 14px; border: 1px solid var(--borde); border-radius: 10px; }
-    .cifra b { display: block; font-family: var(--titulos); font-size: 24px; line-height: 1.1; }
-    .cifra span { color: var(--suave); font-size: 12.5px; }
-    .cifra.ok { background: var(--verde-claro); border-color: #b5dcc4; }
-    .cifra.ok b { color: var(--verde-osc); }
-    .cifra.mal { background: var(--aviso-claro); border-color: #ecd49c; }
-    .cifra.mal b { color: var(--aviso); }
-
-    .sub { margin: 0 0 6px; color: var(--suave); font-size: 12.5px; font-weight: 600; }
-
-    .muestra { margin: 0 0 16px; padding: 0; list-style: none; border: 1px solid var(--borde); border-radius: 10px; }
-    .muestra li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--borde); }
-    .muestra li:last-child { border-bottom: 0; }
-    .muestra .t { color: var(--suave); white-space: nowrap; }
-
-    .opcion-dup { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--borde); border-radius: 10px; }
-    .opcion-dup legend { padding: 0 6px; font-weight: 700; font-size: 13px; }
-    .opcion-dup label { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-
-    .errores-import summary { cursor: pointer; color: var(--aviso); font-weight: 700; font-size: 13px; }
-    .errores-import ul { margin: 8px 0 0; padding-left: 18px; max-height: 150px; overflow-y: auto; color: var(--suave); font-size: 12.5px; }
-
-    /* ---------- Aviso ---------- */
-    #toast {
-      position: fixed;
-      right: 24px;
-      bottom: 24px;
-      z-index: 3000;
-      max-width: calc(100vw - 32px);
-      padding: 13px 18px;
-      border-radius: 11px;
-      background: var(--tinta);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: 0 12px 30px rgba(19, 35, 28, .25);
-      opacity: 0;
-      transform: translateY(12px);
-      pointer-events: none;
-      transition: opacity .2s ease, transform .2s ease;
-    }
-
-    #toast.visible { opacity: 1; transform: none; }
-    #toast.error { background: var(--peligro); }
-
-    /* ---------- Responsive ---------- */
-    @media (max-width: 1180px) {
-      .grid { grid-template-columns: minmax(0, 1fr); }
-      .lateral { position: static; }
-    }
-
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.abierta { transform: none; box-shadow: 14px 0 40px rgba(19, 35, 28, .15); }
-      .main-content { margin-left: 0; padding: 20px 14px 40px; }
-      .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
-      .herramientas { width: 100%; }
-      .herramientas > * { flex: 1 1 140px; }
-      .herramientas .btn { width: 100%; }
-      .menu-lista { left: 0; right: auto; width: min(290px, calc(100vw - 28px)); }
-      .resumen > div { padding: 13px 14px; }
-      .resumen strong { font-size: 22px; }
-      .tarjeta { padding: 18px 14px; }
-      #lista > li { grid-template-columns: 42px minmax(0, 1fr); }
-      .fila-acciones { grid-column: 1 / -1; justify-content: flex-end; }
-      .cifras { grid-template-columns: 1fr; }
-      #toast { right: 14px; bottom: 14px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; }
-    }
-  </style>
-  <script>try{document.documentElement.dataset.tema=localStorage.getItem("tema")||"menta"}catch(e){}</script>
-<link rel="stylesheet" href="{{ url_for('static', filename='/css/temas.css') }}">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <script>try {document.documentElement.dataset.tema = localStorage.getItem("tema") || "menta"} catch (e) { }</script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='/css/temas.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Script de temas (debe ir ANTES del body para evitar flash) -->
+  <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
 </head>
+
 <body>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 20h16"/></symbol>
-    <symbol id="i-bajar" viewBox="0 0 24 24"><path d="M12 4v12m0 0-5-5m5 5 5-5M4 20h16"/></symbol>
-    <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
-    <symbol id="i-editar" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></symbol>
-    <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
-    <symbol id="i-borrar" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-subir" viewBox="0 0 24 24">
+      <path d="M12 16V4m0 0L7 9m5-5 5 5M4 20h16" />
+    </symbol>
+    <symbol id="i-bajar" viewBox="0 0 24 24">
+      <path d="M12 4v12m0 0-5-5m5 5 5-5M4 20h16" />
+    </symbol>
+    <symbol id="i-buscar" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </symbol>
+    <symbol id="i-editar" viewBox="0 0 24 24">
+      <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+    </symbol>
+    <symbol id="i-copiar" viewBox="0 0 24 24">
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15V6a2 2 0 0 1 2-2h8" />
+    </symbol>
+    <symbol id="i-borrar" viewBox="0 0 24 24">
+      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+    </symbol>
   </svg>
 
   <aside class="sidebar" id="sidebar">
@@ -609,6 +53,13 @@
       <li><a href="/" class="activo"><span class="nav-icon">👥</span> Contactos</a></li>
       <li><a href="/editor"><span class="nav-icon">🎨</span> Editor de plantillas</a></li>
     </ul>
+
+  <!-- ✅ Botón de cambio de tema (al final de la sidebar) -->
+  <div class="toggle-tema">
+    <button type="button" id="btn-toggle-tema" aria-label="Cambiar tema">
+      <!-- El contenido se llena dinámicamente desde temas.js -->
+    </button>
+  </div>
   </aside>
 
   <main class="main-content">
@@ -622,12 +73,16 @@
 
       <div class="herramientas">
         <button type="button" class="btn btn-borde" id="abrir-importar">
-          <svg class="ico"><use href="#i-subir"/></svg> Importar
+          <svg class="ico">
+            <use href="#i-subir" />
+          </svg> Importar
         </button>
 
         <details class="menu" id="menu-exportar">
           <summary class="btn btn-borde">
-            <svg class="ico"><use href="#i-bajar"/></svg> Exportar
+            <svg class="ico">
+              <use href="#i-bajar" />
+            </svg> Exportar
           </summary>
           <div class="menu-lista">
             <a href="/api/contactos/exportar?formato=vcf" download data-exportar>
@@ -665,357 +120,380 @@
           </div>
 
           <!-- ESTILOS CSS (Unificados y adaptados a tu estructura) -->
-<style>
-  .campo {
-    margin-bottom: 20px;
-  }
-  .campo label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #333;
-    font-size: 0.95rem;
-  }
-  .campo .ayuda {
-    font-weight: 400;
-    color: #666;
-    font-size: 0.85rem;
-  }
-  .campo .requerido {
-    color: #d32f2f;
-  }
-  .campo input[type="text"],
-  .campo input[type="tel"],
-  .campo input[type="url"],
-  .campo textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-    font-family: inherit;
-  }
-  .campo input:focus,
-  .campo textarea:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  }
-  .telefono-wrapper {
-    display: flex;
-    gap: 10px;
-  }
-  .telefono-wrapper select {
-    width: 140px;
-    padding: 10px 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    background-color: #f9f9f9;
-    cursor: pointer;
-  }
-  .telefono-wrapper select:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-  .error-campo {
-    color: #d32f2f;
-    font-size: 0.85rem;
-    margin-top: 6px;
-    min-height: 1.2em; /* Evita saltos visuales */
-  }
-  
-  /* Estilos para los botones (por si no los tienes definidos en tu CSS global) */
-  .acciones {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-  }
-  .btn {
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    border: none;
-  }
-  .btn-primario {
-    background-color: #007bff;
-    color: white;
-  }
-  .btn-primario:hover:not(:disabled) {
-    background-color: #0056b3;
-  }
-  .btn-primario:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  .btn-oscuro {
-    background-color: #343a40;
-    color: white;
-  }
-  .btn-oscuro.deshabilitado {
-    background-color: #e9ecef;
-    color: #6c757d;
-    pointer-events: none;
-  }
-  .btn-borde {
-    background-color: transparent;
-    border: 1px solid #ccc;
-    color: #333;
-    margin-top: 10px;
-    width: 100%;
-  }
-  .btn-borde:hover {
-    background-color: #f8f9fa;
-  }
-  .personalizar {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-  }
-  .personalizar summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 10px;
-  }
-  .enlace-texto {
-    background: none;
-    border: none;
-    color: #007bff;
-    cursor: pointer;
-    text-decoration: underline;
-    font-size: 0.9rem;
-    padding: 0;
-    margin-top: 8px;
-  }
-</style>
-
-<!-- ESTRUCTURA HTML UNIFICADA -->
-<form id="formulario" novalidate>
-  <input type="hidden" id="contacto-id" value="">
-
-  <div class="campo">
-    <label for="nombre">Nombre <span class="requerido">*</span></label>
-    <input type="text" id="nombre" placeholder="Ej: María Pérez" autocomplete="off" required>
-  </div>
-
-  <div class="campo">
-    <label for="telefono">Teléfono <span class="ayuda">con código de país</span></label>
-    <div class="telefono-wrapper">
-      <select id="codigo-pais" required>
-        <option value="56">🇨🇱 Chile (+56)</option>
-      </select>
-      <input type="tel" id="telefono" placeholder="912345678" inputmode="numeric" autocomplete="off" required>
-    </div>
-    <div class="error-campo" id="error-telefono"></div>
-  </div>
-
-  <div class="campo">
-    <label for="link">Link <span class="ayuda">opcional</span></label>
-    <input type="url" id="link" placeholder="https://tusitio.cl" autocomplete="off">
-    <div class="error-campo" id="error-link"></div>
-  </div>
-
-  <details class="personalizar">
-    <summary>Personalizar texto de bienvenida</summary>
-    <textarea id="plantilla" rows="4" aria-label="Texto de bienvenida"></textarea>
-    <p class="ayuda" style="margin: 8px 0 0;">Escribe <b>{nombre}</b> donde quieras que aparezca el nombre.</p>
-    <button type="button" class="enlace-texto" id="restaurar">Restaurar texto original</button>
-  </details>
-
-  <div class="acciones">
-    <button type="submit" class="btn btn-primario" id="guardar">Guardar contacto</button>
-    <a class="btn btn-oscuro deshabilitado" id="enviar-ahora" href="#" target="_blank" rel="noopener">Enviar ahora</a>
-  </div>
-  
-  <button type="button" class="btn btn-borde" id="cancelar-edicion" hidden>Cancelar edición</button>
-</form>
-
-<!-- LÓGICA JAVASCRIPT UNIFICADA -->
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Referencias al DOM
-    const formulario = document.getElementById("formulario");
-    const inputId = document.getElementById("contacto-id");
-    const inputNombre = document.getElementById("nombre");
-    const selectPais = document.getElementById("codigo-pais");
-    const inputTelefono = document.getElementById("telefono");
-    const errorTelefono = document.getElementById("error-telefono");
-    const inputLink = document.getElementById("link");
-    const errorLink = document.getElementById("error-link");
-    const btnGuardar = document.getElementById("guardar");
-    const btnCancelar = document.getElementById("cancelar-edicion");
-    const btnRestaurar = document.getElementById("restaurar");
-    const textareaPlantilla = document.getElementById("plantilla");
-
-    // 2. Cargar países desde el endpoint de Flask
-    if (selectPais) {
-        try {
-            const res = await fetch("/api/countries");
-            const paises = await res.json();
-            
-            // Mantener Chile por defecto y limpiar
-            selectPais.innerHTML = '<option value="56">🇨🇱 Chile (+56)</option>';
-            
-            paises.forEach(p => {
-                const codigoLimpio = p.codigo.replace('+', '');
-                if (codigoLimpio === "56") return; // Evitar duplicar Chile
-                
-                const option = document.createElement("option");
-                option.value = codigoLimpio;
-                option.textContent = `${p.flag} ${p.nombre} (${p.codigo})`;
-                selectPais.appendChild(option);
-            });
-        } catch (e) {
-            console.warn("No se pudieron cargar los países. Se usa valor por defecto.", e);
-        }
-    }
-
-    // 3. Validación en tiempo real del teléfono
-    if (inputTelefono) {
-        inputTelefono.addEventListener("input", () => {
-            inputTelefono.value = inputTelefono.value.replace(/\D/g, ''); // Solo números
-            
-            const codigo = selectPais ? selectPais.value : "56";
-            const totalDigitos = (codigo + inputTelefono.value).length;
-
-            if (inputTelefono.value.length > 0 && totalDigitos < 8) {
-                errorTelefono.textContent = "El número es demasiado corto.";
-            } else if (totalDigitos > 15) {
-                errorTelefono.textContent = "El número es demasiado largo.";
-            } else {
-                errorTelefono.textContent = "";
-            }
-        });
-    }
-
-    // 4. Validación en tiempo real del link (opcional pero recomendado)
-    if (inputLink) {
-        inputLink.addEventListener("input", () => {
-            const url = inputLink.value.trim();
-            if (url && !/^https?:\/\/\S+$/i.test(url)) {
-                errorLink.textContent = "Debe empezar con http:// o https://";
-            } else {
-                errorLink.textContent = "";
-            }
-        });
-    }
-
-    // 5. Restaurar plantilla
-    if (btnRestaurar && textareaPlantilla) {
-        btnRestaurar.addEventListener("click", () => {
-            textareaPlantilla.value = "Hola {nombre}, te contacto desde..."; // Ajusta a tu texto por defecto
-        });
-    }
-
-    // 6. Manejo del envío del formulario
-    if (formulario) {
-        formulario.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            // Limpiar errores
-            errorTelefono.textContent = "";
-            errorLink.textContent = "";
-
-            // Construir teléfono final
-            const codigo = selectPais.value.replace("+", ""); 
-            const numero = inputTelefono.value.replace(/\D/g, "");
-            const telefonoCompleto = codigo + numero;
-
-            // Validaciones finales
-            let hayError = false;
-            if (!inputNombre.value.trim()) {
-                alert("El nombre es obligatorio.");
-                inputNombre.focus();
-                return;
-            }
-            if (telefonoCompleto.length < 8 || telefonoCompleto.length > 15) {
-                errorTelefono.textContent = "El teléfono debe tener entre 8 y 15 dígitos en total.";
-                inputTelefono.focus();
-                hayError = true;
-            }
-            const urlLink = inputLink.value.trim();
-            if (urlLink && !/^https?:\/\/\S+$/i.test(urlLink)) {
-                errorLink.textContent = "El link debe empezar con http:// o https://";
-                inputLink.focus();
-                hayError = true;
+          <style>
+            .campo {
+              margin-bottom: 20px;
             }
 
-            if (hayError) return;
+            .campo label {
+              display: block;
+              margin-bottom: 6px;
+              font-weight: 600;
+              color: #333;
+              font-size: 0.95rem;
+            }
 
-            // Preparar payload para Flask
-            const datos = {
-                nombre: inputNombre.value.trim(),
-                telefono: telefonoCompleto,
-                link: urlLink
-                // Nota: Si tu backend guarda la plantilla en el mismo contacto, agrega: plantilla: textareaPlantilla.value
-            };
+            .campo .ayuda {
+              font-weight: 400;
+              color: #666;
+              font-size: 0.85rem;
+            }
 
-            // Estado de carga
-            btnGuardar.disabled = true;
-            btnGuardar.textContent = "Guardando...";
+            .campo .requerido {
+              color: #d32f2f;
+            }
 
-            try {
-                const metodo = inputId.value ? "PUT" : "POST";
-                const url = inputId.value ? `/api/contactos/${inputId.value}` : "/api/contactos";
+            .campo input[type="text"],
+            .campo input[type="tel"],
+            .campo input[type="url"],
+            .campo textarea {
+              width: 100%;
+              padding: 10px 12px;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+              font-size: 1rem;
+              box-sizing: border-box;
+              transition: border-color 0.2s;
+              font-family: inherit;
+            }
 
-                const response = await fetch(url, {
-                    method: metodo,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datos)
+            .campo input:focus,
+            .campo textarea:focus {
+              border-color: #007bff;
+              outline: none;
+              box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+            }
+
+            .telefono-wrapper {
+              display: flex;
+              gap: 10px;
+            }
+
+            .telefono-wrapper select {
+              width: 140px;
+              padding: 10px 8px;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+              font-size: 1rem;
+              background-color: #f9f9f9;
+              cursor: pointer;
+            }
+
+            .telefono-wrapper select:focus {
+              border-color: #007bff;
+              outline: none;
+            }
+
+            .error-campo {
+              color: #d32f2f;
+              font-size: 0.85rem;
+              margin-top: 6px;
+              min-height: 1.2em;
+              /* Evita saltos visuales */
+            }
+
+            /* Estilos para los botones (por si no los tienes definidos en tu CSS global) */
+            .acciones {
+              display: flex;
+              gap: 10px;
+              margin-top: 24px;
+              flex-wrap: wrap;
+            }
+
+            .btn {
+              padding: 10px 20px;
+              border-radius: 6px;
+              font-size: 1rem;
+              font-weight: 600;
+              cursor: pointer;
+              text-decoration: none;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s;
+              border: none;
+            }
+
+            .btn-primario {
+              background-color: #007bff;
+              color: white;
+            }
+
+            .btn-primario:hover:not(:disabled) {
+              background-color: #0056b3;
+            }
+
+            .btn-primario:disabled {
+              background-color: #ccc;
+              cursor: not-allowed;
+            }
+
+            .btn-oscuro {
+              background-color: #343a40;
+              color: white;
+            }
+
+            .btn-oscuro.deshabilitado {
+              background-color: #e9ecef;
+              color: #6c757d;
+              pointer-events: none;
+            }
+
+            .btn-borde {
+              background-color: transparent;
+              border: 1px solid #ccc;
+              color: #333;
+              margin-top: 10px;
+              width: 100%;
+            }
+
+            .btn-borde:hover {
+              background-color: #f8f9fa;
+            }
+
+            .personalizar {
+              margin-top: 20px;
+              padding: 15px;
+              background-color: #f8f9fa;
+              border-radius: 6px;
+              border: 1px solid #e9ecef;
+            }
+
+            .personalizar summary {
+              cursor: pointer;
+              font-weight: 600;
+              color: #333;
+              margin-bottom: 10px;
+            }
+
+            .enlace-texto {
+              background: none;
+              border: none;
+              color: #007bff;
+              cursor: pointer;
+              text-decoration: underline;
+              font-size: 0.9rem;
+              padding: 0;
+              margin-top: 8px;
+            }
+          </style>
+
+          <!-- ESTRUCTURA HTML UNIFICADA -->
+          <form id="formulario" novalidate>
+            <input type="hidden" id="contacto-id" value="">
+
+            <div class="campo">
+              <label for="nombre">Nombre <span class="requerido">*</span></label>
+              <input type="text" id="nombre" placeholder="Ej: María Pérez" autocomplete="off" required>
+            </div>
+
+            <div class="campo">
+              <label for="telefono">Teléfono <span class="ayuda">con código de país</span></label>
+              <div class="telefono-wrapper">
+                <select id="codigo-pais" required>
+                  <option value="56">🇨🇱 Chile (+56)</option>
+                </select>
+                <input type="tel" id="telefono" placeholder="912345678" inputmode="numeric" autocomplete="off" required>
+              </div>
+              <div class="error-campo" id="error-telefono"></div>
+            </div>
+
+            <div class="campo">
+              <label for="link">Link <span class="ayuda">opcional</span></label>
+              <input type="url" id="link" placeholder="https://tusitio.cl" autocomplete="off">
+              <div class="error-campo" id="error-link"></div>
+            </div>
+
+            <details class="personalizar">
+              <summary>Personalizar texto de bienvenida</summary>
+              <textarea id="plantilla" rows="4" aria-label="Texto de bienvenida"></textarea>
+              <p class="ayuda" style="margin: 8px 0 0;">Escribe <b>{nombre}</b> donde quieras que aparezca el nombre.
+              </p>
+              <button type="button" class="enlace-texto" id="restaurar">Restaurar texto original</button>
+            </details>
+
+            <div class="acciones">
+              <button type="submit" class="btn btn-primario" id="guardar">Guardar contacto</button>
+              <a class="btn btn-oscuro deshabilitado" id="enviar-ahora" href="#" target="_blank" rel="noopener">Enviar
+                ahora</a>
+            </div>
+
+            <button type="button" class="btn btn-borde" id="cancelar-edicion" hidden>Cancelar edición</button>
+          </form>
+
+          <!-- LÓGICA JAVASCRIPT UNIFICADA -->
+          <script>
+            document.addEventListener("DOMContentLoaded", async () => {
+              // 1. Referencias al DOM
+              const formulario = document.getElementById("formulario");
+              const inputId = document.getElementById("contacto-id");
+              const inputNombre = document.getElementById("nombre");
+              const selectPais = document.getElementById("codigo-pais");
+              const inputTelefono = document.getElementById("telefono");
+              const errorTelefono = document.getElementById("error-telefono");
+              const inputLink = document.getElementById("link");
+              const errorLink = document.getElementById("error-link");
+              const btnGuardar = document.getElementById("guardar");
+              const btnCancelar = document.getElementById("cancelar-edicion");
+              const btnRestaurar = document.getElementById("restaurar");
+              const textareaPlantilla = document.getElementById("plantilla");
+
+              // 2. Cargar países desde el endpoint de Flask
+              if (selectPais) {
+                try {
+                  const res = await fetch("/api/countries");
+                  const paises = await res.json();
+
+                  // Mantener Chile por defecto y limpiar
+                  selectPais.innerHTML = '<option value="56">🇨🇱 Chile (+56)</option>';
+
+                  paises.forEach(p => {
+                    const codigoLimpio = p.codigo.replace('+', '');
+                    if (codigoLimpio === "56") return; // Evitar duplicar Chile
+
+                    const option = document.createElement("option");
+                    option.value = codigoLimpio;
+                    option.textContent = `${p.flag} ${p.nombre} (${p.codigo})`;
+                    selectPais.appendChild(option);
+                  });
+                } catch (e) {
+                  console.warn("No se pudieron cargar los países. Se usa valor por defecto.", e);
+                }
+              }
+
+              // 3. Validación en tiempo real del teléfono
+              if (inputTelefono) {
+                inputTelefono.addEventListener("input", () => {
+                  inputTelefono.value = inputTelefono.value.replace(/\D/g, ''); // Solo números
+
+                  const codigo = selectPais ? selectPais.value : "56";
+                  const totalDigitos = (codigo + inputTelefono.value).length;
+
+                  if (inputTelefono.value.length > 0 && totalDigitos < 8) {
+                    errorTelefono.textContent = "El número es demasiado corto.";
+                  } else if (totalDigitos > 15) {
+                    errorTelefono.textContent = "El número es demasiado largo.";
+                  } else {
+                    errorTelefono.textContent = "";
+                  }
                 });
+              }
 
-                const resultado = await response.json();
+              // 4. Validación en tiempo real del link (opcional pero recomendado)
+              if (inputLink) {
+                inputLink.addEventListener("input", () => {
+                  const url = inputLink.value.trim();
+                  if (url && !/^https?:\/\/\S+$/i.test(url)) {
+                    errorLink.textContent = "Debe empezar con http:// o https://";
+                  } else {
+                    errorLink.textContent = "";
+                  }
+                });
+              }
 
-                if (response.ok) {
-                    // Éxito
-                    if (!inputId.value) {
+              // 5. Restaurar plantilla
+              if (btnRestaurar && textareaPlantilla) {
+                btnRestaurar.addEventListener("click", () => {
+                  textareaPlantilla.value = "Hola {nombre}, te contacto desde..."; // Ajusta a tu texto por defecto
+                });
+              }
+
+              // 6. Manejo del envío del formulario
+              if (formulario) {
+                formulario.addEventListener("submit", async (e) => {
+                  e.preventDefault();
+
+                  // Limpiar errores
+                  errorTelefono.textContent = "";
+                  errorLink.textContent = "";
+
+                  // Construir teléfono final
+                  const codigo = selectPais.value.replace("+", "");
+                  const numero = inputTelefono.value.replace(/\D/g, "");
+                  const telefonoCompleto = codigo + numero;
+
+                  // Validaciones finales
+                  let hayError = false;
+                  if (!inputNombre.value.trim()) {
+                    alert("El nombre es obligatorio.");
+                    inputNombre.focus();
+                    return;
+                  }
+                  if (telefonoCompleto.length < 8 || telefonoCompleto.length > 15) {
+                    errorTelefono.textContent = "El teléfono debe tener entre 8 y 15 dígitos en total.";
+                    inputTelefono.focus();
+                    hayError = true;
+                  }
+                  const urlLink = inputLink.value.trim();
+                  if (urlLink && !/^https?:\/\/\S+$/i.test(urlLink)) {
+                    errorLink.textContent = "El link debe empezar con http:// o https://";
+                    inputLink.focus();
+                    hayError = true;
+                  }
+
+                  if (hayError) return;
+
+                  // Preparar payload para Flask
+                  const datos = {
+                    nombre: inputNombre.value.trim(),
+                    telefono: telefonoCompleto,
+                    link: urlLink
+                    // Nota: Si tu backend guarda la plantilla en el mismo contacto, agrega: plantilla: textareaPlantilla.value
+                  };
+
+                  // Estado de carga
+                  btnGuardar.disabled = true;
+                  btnGuardar.textContent = "Guardando...";
+
+                  try {
+                    const metodo = inputId.value ? "PUT" : "POST";
+                    const url = inputId.value ? `/api/contactos/${inputId.value}` : "/api/contactos";
+
+                    const response = await fetch(url, {
+                      method: metodo,
+                      headers: {"Content-Type": "application/json"},
+                      body: JSON.stringify(datos)
+                    });
+
+                    const resultado = await response.json();
+
+                    if (response.ok) {
+                      // Éxito
+                      if (!inputId.value) {
                         alert("✅ Contacto guardado exitosamente.");
                         formulario.reset();
                         if (selectPais) selectPais.value = "56";
-                    } else {
+                      } else {
                         alert("✅ Contacto actualizado exitosamente.");
                         // Aquí podrías disparar un evento para recargar la lista de contactos
+                      }
+                    } else {
+                      // Error del backend (ej: duplicado)
+                      errorTelefono.textContent = resultado.error || "No se pudo guardar el contacto.";
                     }
-                } else {
-                    // Error del backend (ej: duplicado)
-                    errorTelefono.textContent = resultado.error || "No se pudo guardar el contacto.";
-                }
-            } catch (error) {
-                console.error("Error de red:", error);
-                alert("Ocurrió un error de conexión con el servidor.");
-            } finally {
-                btnGuardar.disabled = false;
-                btnGuardar.textContent = inputId.value ? "Actualizar contacto" : "Guardar contacto";
-            }
-        });
-    }
+                  } catch (error) {
+                    console.error("Error de red:", error);
+                    alert("Ocurrió un error de conexión con el servidor.");
+                  } finally {
+                    btnGuardar.disabled = false;
+                    btnGuardar.textContent = inputId.value ? "Actualizar contacto" : "Guardar contacto";
+                  }
+                });
+              }
 
-    // 7. Botón cancelar edición (si tu app lo usa)
-    if (btnCancelar) {
-        btnCancelar.addEventListener("click", () => {
-            formulario.reset();
-            inputId.value = "";
-            if (selectPais) selectPais.value = "56";
-            btnGuardar.textContent = "Guardar contacto";
-            btnCancelar.hidden = true;
-            // Aquí podrías agregar lógica para ocultar el formulario o deseleccionar la fila
-        });
-    }
-});
-</script>
+              // 7. Botón cancelar edición (si tu app lo usa)
+              if (btnCancelar) {
+                btnCancelar.addEventListener("click", () => {
+                  formulario.reset();
+                  inputId.value = "";
+                  if (selectPais) selectPais.value = "56";
+                  btnGuardar.textContent = "Guardar contacto";
+                  btnCancelar.hidden = true;
+                  // Aquí podrías agregar lógica para ocultar el formulario o deseleccionar la fila
+                });
+              }
+            });
+          </script>
         </section>
       </div>
 
@@ -1025,8 +503,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
 
         <div class="buscador">
-          <svg class="ico"><use href="#i-buscar"/></svg>
-          <input type="search" id="buscar" placeholder="Buscar por nombre o teléfono" autocomplete="off" aria-label="Buscar contactos">
+          <svg class="ico">
+            <use href="#i-buscar" />
+          </svg>
+          <input type="search" id="buscar" placeholder="Buscar por nombre o teléfono" autocomplete="off"
+            aria-label="Buscar contactos">
         </div>
 
         <div class="lista-container">
@@ -1050,12 +531,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     <div class="modal-cuerpo">
       <label class="zona" id="zona" for="archivo-import">
-        <svg class="ico"><use href="#i-subir"/></svg>
+        <svg class="ico">
+          <use href="#i-subir" />
+        </svg>
         <strong>Arrastra tu archivo aquí</strong>
         <span>o haz clic para elegirlo. Acepta .vcf, .csv y .json de hasta 10 MB.</span>
       </label>
       <input type="file" id="archivo-import" accept=".vcf,.csv,.json" hidden>
-      <p class="ayuda">Los números sin código de país se completan con +56. <a href="/api/contactos/ejemplo.csv">Descargar CSV de ejemplo</a></p>
+      <p class="ayuda">Los números sin código de país se completan con +56. <a
+          href="/api/contactos/ejemplo.csv">Descargar CSV de ejemplo</a></p>
 
       <div class="estado-import" id="import-estado" hidden></div>
       <div id="import-resultado" hidden></div>
@@ -1079,7 +563,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let modoEdicion = false;
 
     // ---------- utilidades ----------
-    function soloDigitos(v) { return v.replace(/\D/g, ""); }
+    function soloDigitos(v) {return v.replace(/\D/g, "");}
 
     function el(etiqueta, clase, texto) {
       const nodo = document.createElement(etiqueta);
@@ -1114,12 +598,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function leerPlantilla() {
-      try { return localStorage.getItem("plantilla") || PLANTILLA_ORIGINAL; }
-      catch (e) { return PLANTILLA_ORIGINAL; }
+      try {return localStorage.getItem("plantilla") || PLANTILLA_ORIGINAL;}
+      catch (e) {return PLANTILLA_ORIGINAL;}
     }
 
     function guardarPlantilla(texto) {
-      try { localStorage.setItem("plantilla", texto); } catch (e) {}
+      try {localStorage.setItem("plantilla", texto);} catch (e) { }
     }
 
     function construirMensaje(nombre, link) {
@@ -1132,12 +616,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       return "https://web.whatsapp.com/send?phone=" + telefono + "&text=" + encodeURIComponent(mensaje);
     }
 
-    function linkValido(v) { return v === "" || /^https?:\/\/\S+$/i.test(v); }
-    function telefonoValido(t) { return t.length >= 8 && t.length <= 15; }
+    function linkValido(v) {return v === "" || /^https?:\/\/\S+$/i.test(v);}
+    function telefonoValido(t) {return t.length >= 8 && t.length <= 15;}
 
     function dominio(url) {
-      try { return new URL(url).hostname.replace(/^www\./, ""); }
-      catch (e) { return url; }
+      try {return new URL(url).hostname.replace(/^www\./, "");}
+      catch (e) {return url;}
     }
 
     let temporizadorToast;
@@ -1146,11 +630,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       t.textContent = texto;
       t.className = "visible" + (esError ? " error" : "");
       clearTimeout(temporizadorToast);
-      temporizadorToast = setTimeout(() => { t.className = ""; }, 3500);
+      temporizadorToast = setTimeout(() => {t.className = "";}, 3500);
     }
 
     async function api(url, opciones) {
-      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opciones));
+      const r = await fetch(url, Object.assign({headers: {"Content-Type": "application/json"}}, opciones));
       const datos = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(datos.error || "Ocurrió un error inesperado.");
       return datos;
@@ -1163,7 +647,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const link = $("link").value.trim();
 
       $("burbuja").textContent = construirMensaje(nombre, link);
-      $("hora").textContent = new Date().toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
+      $("hora").textContent = new Date().toLocaleTimeString("es-CL", {hour: "2-digit", minute: "2-digit"});
 
       const telMal = telefono !== "" && !telefonoValido(telefono);
       $("telefono").classList.toggle("invalido", telMal);
@@ -1231,8 +715,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         wa.rel = "noopener";
 
         const copiar = botonIcono("i-copiar", "Copiar mensaje", "", async () => {
-          try { await navigator.clipboard.writeText(mensaje); aviso("Mensaje copiado"); }
-          catch (e) { aviso("No se pudo copiar", true); }
+          try {await navigator.clipboard.writeText(mensaje); aviso("Mensaje copiado");}
+          catch (e) {aviso("No se pudo copiar", true);}
         });
 
         const editar = botonIcono("i-editar", "Editar contacto", "", () => editarContacto(c));
@@ -1257,7 +741,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const datos = await api("/api/plantillas");
         $("stat-plantillas").textContent = datos.length;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function editarContacto(c) {
@@ -1273,13 +757,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       actualizarVistaPrevia();
       $("nombre").focus();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({top: 0, behavior: "smooth"});
     }
 
     async function eliminarContacto(c) {
       if (!confirm("¿Eliminar a " + c.nombre + "?")) return;
       try {
-        await api("/api/contactos/" + c.id, { method: "DELETE" });
+        await api("/api/contactos/" + c.id, {method: "DELETE"});
         contactos = contactos.filter((x) => x.id !== c.id);
         dibujarLista();
         aviso("Contacto eliminado");
@@ -1307,9 +791,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       const telefono = soloDigitos($("telefono").value);
       const link = $("link").value.trim();
 
-      if (!nombre) { aviso("Escribe un nombre", true); $("nombre").focus(); return; }
-      if (!telefonoValido(telefono)) { aviso("Revisa el teléfono", true); $("telefono").focus(); return; }
-      if (!linkValido(link)) { aviso("Revisa el link", true); $("link").focus(); return; }
+      if (!nombre) {aviso("Escribe un nombre", true); $("nombre").focus(); return;}
+      if (!telefonoValido(telefono)) {aviso("Revisa el teléfono", true); $("telefono").focus(); return;}
+      if (!linkValido(link)) {aviso("Revisa el link", true); $("link").focus(); return;}
 
       const boton = $("guardar");
       boton.disabled = true;
@@ -1317,13 +801,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (modoEdicion && id) {
           await api("/api/contactos/" + id, {
             method: "PUT",
-            body: JSON.stringify({ nombre, telefono, link }),
+            body: JSON.stringify({nombre, telefono, link}),
           });
           aviso("Contacto actualizado");
         } else {
           await api("/api/contactos", {
             method: "POST",
-            body: JSON.stringify({ nombre, telefono, link }),
+            body: JSON.stringify({nombre, telefono, link}),
           });
           aviso("Contacto guardado");
         }
@@ -1467,7 +951,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       datos.append("modo", "vista-previa");
 
       try {
-        const r = await fetch("/api/contactos/importar", { method: "POST", body: datos });
+        const r = await fetch("/api/contactos/importar", {method: "POST", body: datos});
         const d = await r.json().catch(() => ({}));
 
         if (!r.ok) {
@@ -1502,7 +986,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       boton.textContent = "Importando…";
 
       try {
-        const r = await fetch("/api/contactos/importar", { method: "POST", body: datos });
+        const r = await fetch("/api/contactos/importar", {method: "POST", body: datos});
         const d = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(d.error || "No se pudo importar.");
 
@@ -1516,11 +1000,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    $("abrir-importar").addEventListener("click", () => { reiniciarImportacion(); dlg.showModal(); });
+    $("abrir-importar").addEventListener("click", () => {reiniciarImportacion(); dlg.showModal();});
     $("cerrar-importar").addEventListener("click", () => dlg.close());
     $("cancelar-importar").addEventListener("click", () => dlg.close());
     $("confirmar-import").addEventListener("click", confirmarImportacion);
-    dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });
+    dlg.addEventListener("click", (ev) => {if (ev.target === dlg) dlg.close();});
 
     $("archivo-import").addEventListener("change", (ev) => {
       if (ev.target.files[0]) analizarArchivo(ev.target.files[0]);
@@ -1571,4 +1055,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   </script>
 
 </body>
+
 </html>
