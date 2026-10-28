@@ -6,9 +6,11 @@ import quopri
 import re
 import threading
 import unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta  # <-- AÑADIDO: timedelta
 from uuid import uuid4
 
+import requests                                     # <-- NUEVO
+from dotenv import load_dotenv                      # <-- NUEVO
 from flask import (
     Flask,
     jsonify,
@@ -17,10 +19,12 @@ from flask import (
     send_file,
 )
 
+load_dotenv()  # <-- NUEVO: Carga las variables del archivo .env al iniciar
+
 app = Flask(__name__)
 
 # Límite general para las solicitudes que incluyen archivos o imágenes.
-app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", 12 * 1024 * 1024))
 
 # Archivos y carpetas ubicados junto a app.py.
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -31,16 +35,74 @@ PLANTILLAS_DIR = os.path.join(BASE, "plantillas")
 ID_RE = re.compile(r"^[0-9a-f]{32}$")
 LINK_RE = re.compile(r"^https?://\S+$", re.IGNORECASE)
 
+# Código de país que se antepone a los números locales al IMPORTAR.
+# <-- MODIFICADO: Ahora se lee del .env, con "56" como fallback
 # Código de país que se antepone a los números locales al IMPORTAR
-# (por ejemplo, 912345678 -> 56912345678). Déjalo en "" para desactivarlo.
 PAIS_DEFECTO = "56"
+# -------------------------------------------------------------------
+# CARGA DE PAÍSES DESDE JSON LOCAL
+# -------------------------------------------------------------------
+ARCHIVO_PAISES = os.path.join(BASE, "paises.json")
 
-LIMITE_IMPORTACION = 10 * 1024 * 1024
+
+def iso_a_bandera(codigo_iso):
+    """
+    Convierte un código ISO de 2 letras (ej: 'CL') en emoji de bandera (🇨🇱).
+    Funciona usando los caracteres Unicode de indicadores regionales.
+    """
+    if not codigo_iso or len(codigo_iso) != 2:
+        return "🏳️"
+    return "".join(chr(ord(c.upper()) + 127397) for c in codigo_iso)
+
+
+def cargar_lista_paises():
+    """
+    Carga paises.json y lo transforma al formato que espera el frontend:
+    {"nombre": "...", "codigo": "...", "flag": "...", "cca2": "..."}
+    """
+    try:
+        with open(ARCHIVO_PAISES, "r", encoding="utf-8") as archivo:
+            datos_crudos = json.load(archivo)
+        
+        # Transformar cada país al formato esperado
+        paises = []
+        for item in datos_crudos:
+            if not isinstance(item, dict):
+                continue
+            
+            pais = {
+                "nombre": item.get("country", ""),
+                "codigo": item.get("code", ""),
+                "flag": iso_a_bandera(item.get("iso", "")),
+                "cca2": item.get("iso", "")
+            }
+            
+            # Solo incluir si tiene nombre y código
+            if pais["nombre"] and pais["codigo"]:
+                paises.append(pais)
+        
+        # Ordenar alfabéticamente por nombre
+        return sorted(paises, key=lambda x: x["nombre"])
+    
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error cargando paises.json: {e}")
+        # Fallback mínimo para que la app nunca se rompa
+        return [{"nombre": "Chile", "codigo": "56", "flag": "🇨🇱", "cca2": "CL"}]
+
+
+# Cargar una sola vez al iniciar la aplicación
+PAISES_DISPONIBLES = cargar_lista_paises()
+LIMITE_IMPORTACION = int(os.getenv("LIMITE_IMPORTACION", 10 * 1024 * 1024))
 MAX_ERRORES_MOSTRADOS = 50
 
 # Evita que dos peticiones simultáneas pisen contactos.json.
 BLOQUEO = threading.RLock()
 
+# <-- NUEVO: Caché en memoria para la API de países
+countries_cache = {
+    'data': None,
+    'timestamp': None
+}
 
 @app.errorhandler(413)
 def archivo_muy_grande(_error):
@@ -1066,6 +1128,14 @@ def eliminar_plantilla(pid):
     return jsonify(ok=True)
 
 
+# -------------------------------------------------------------------
+# API DE CÓDIGOS DE PAÍS
+# -------------------------------------------------------------------
+
+@app.get("/api/countries")
+def get_countries():
+    """Devuelve la lista de países desde el archivo JSON local"""
+    return jsonify(PAISES_DISPONIBLES)
 # -------------------------------------------------------------------
 # INICIO
 # -------------------------------------------------------------------

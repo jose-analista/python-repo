@@ -586,6 +586,8 @@
       * { transition: none !important; }
     }
   </style>
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("tema")||"menta"}catch(e){}</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='/css/temas.css') }}">
 </head>
 <body>
 
@@ -662,39 +664,358 @@
             <div class="burbuja"><span id="burbuja"></span><span class="burbuja-hora" id="hora"></span></div>
           </div>
 
-          <form id="formulario" novalidate>
-            <input type="hidden" id="contacto-id" value="">
+          <!-- ESTILOS CSS (Unificados y adaptados a tu estructura) -->
+<style>
+  .campo {
+    margin-bottom: 20px;
+  }
+  .campo label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+  }
+  .campo .ayuda {
+    font-weight: 400;
+    color: #666;
+    font-size: 0.85rem;
+  }
+  .campo .requerido {
+    color: #d32f2f;
+  }
+  .campo input[type="text"],
+  .campo input[type="tel"],
+  .campo input[type="url"],
+  .campo textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .campo input:focus,
+  .campo textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+  .telefono-wrapper {
+    display: flex;
+    gap: 10px;
+  }
+  .telefono-wrapper select {
+    width: 140px;
+    padding: 10px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    cursor: pointer;
+  }
+  .telefono-wrapper select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  .error-campo {
+    color: #d32f2f;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    min-height: 1.2em; /* Evita saltos visuales */
+  }
+  
+  /* Estilos para los botones (por si no los tienes definidos en tu CSS global) */
+  .acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+  }
+  .btn-primario {
+    background-color: #007bff;
+    color: white;
+  }
+  .btn-primario:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  .btn-primario:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  .btn-oscuro {
+    background-color: #343a40;
+    color: white;
+  }
+  .btn-oscuro.deshabilitado {
+    background-color: #e9ecef;
+    color: #6c757d;
+    pointer-events: none;
+  }
+  .btn-borde {
+    background-color: transparent;
+    border: 1px solid #ccc;
+    color: #333;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .btn-borde:hover {
+    background-color: #f8f9fa;
+  }
+  .personalizar {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+  }
+  .personalizar summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  .enlace-texto {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    padding: 0;
+    margin-top: 8px;
+  }
+</style>
 
-            <div class="campo">
-              <label for="nombre">Nombre</label>
-              <input type="text" id="nombre" placeholder="Ej: María Pérez" autocomplete="off" required>
-            </div>
+<!-- ESTRUCTURA HTML UNIFICADA -->
+<form id="formulario" novalidate>
+  <input type="hidden" id="contacto-id" value="">
 
-            <div class="campo">
-              <label for="telefono">Teléfono <span class="ayuda">con código de país, ej: 569...</span></label>
-              <input type="tel" id="telefono" placeholder="56912345678" inputmode="numeric" autocomplete="off" required>
-              <div class="error-campo" id="error-telefono"></div>
-            </div>
+  <div class="campo">
+    <label for="nombre">Nombre <span class="requerido">*</span></label>
+    <input type="text" id="nombre" placeholder="Ej: María Pérez" autocomplete="off" required>
+  </div>
 
-            <div class="campo">
-              <label for="link">Link <span class="ayuda">opcional</span></label>
-              <input type="url" id="link" placeholder="https://tusitio.cl" autocomplete="off">
-              <div class="error-campo" id="error-link"></div>
-            </div>
+  <div class="campo">
+    <label for="telefono">Teléfono <span class="ayuda">con código de país</span></label>
+    <div class="telefono-wrapper">
+      <select id="codigo-pais" required>
+        <option value="56">🇨🇱 Chile (+56)</option>
+      </select>
+      <input type="tel" id="telefono" placeholder="912345678" inputmode="numeric" autocomplete="off" required>
+    </div>
+    <div class="error-campo" id="error-telefono"></div>
+  </div>
 
-            <details class="personalizar">
-              <summary>Personalizar texto de bienvenida</summary>
-              <textarea id="plantilla" aria-label="Texto de bienvenida"></textarea>
-              <p class="ayuda" style="margin: 8px 0 0;">Escribe <b>{nombre}</b> donde quieras que aparezca el nombre.</p>
-              <button type="button" class="enlace-texto" id="restaurar">Restaurar texto original</button>
-            </details>
+  <div class="campo">
+    <label for="link">Link <span class="ayuda">opcional</span></label>
+    <input type="url" id="link" placeholder="https://tusitio.cl" autocomplete="off">
+    <div class="error-campo" id="error-link"></div>
+  </div>
 
-            <div class="acciones">
-              <button type="submit" class="btn btn-primario" id="guardar">Guardar contacto</button>
-              <a class="btn btn-oscuro deshabilitado" id="enviar-ahora" href="#" target="_blank" rel="noopener">Enviar ahora</a>
-            </div>
-            <button type="button" class="btn btn-borde" id="cancelar-edicion" hidden>Cancelar edición</button>
-          </form>
+  <details class="personalizar">
+    <summary>Personalizar texto de bienvenida</summary>
+    <textarea id="plantilla" rows="4" aria-label="Texto de bienvenida"></textarea>
+    <p class="ayuda" style="margin: 8px 0 0;">Escribe <b>{nombre}</b> donde quieras que aparezca el nombre.</p>
+    <button type="button" class="enlace-texto" id="restaurar">Restaurar texto original</button>
+  </details>
+
+  <div class="acciones">
+    <button type="submit" class="btn btn-primario" id="guardar">Guardar contacto</button>
+    <a class="btn btn-oscuro deshabilitado" id="enviar-ahora" href="#" target="_blank" rel="noopener">Enviar ahora</a>
+  </div>
+  
+  <button type="button" class="btn btn-borde" id="cancelar-edicion" hidden>Cancelar edición</button>
+</form>
+
+<!-- LÓGICA JAVASCRIPT UNIFICADA -->
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Referencias al DOM
+    const formulario = document.getElementById("formulario");
+    const inputId = document.getElementById("contacto-id");
+    const inputNombre = document.getElementById("nombre");
+    const selectPais = document.getElementById("codigo-pais");
+    const inputTelefono = document.getElementById("telefono");
+    const errorTelefono = document.getElementById("error-telefono");
+    const inputLink = document.getElementById("link");
+    const errorLink = document.getElementById("error-link");
+    const btnGuardar = document.getElementById("guardar");
+    const btnCancelar = document.getElementById("cancelar-edicion");
+    const btnRestaurar = document.getElementById("restaurar");
+    const textareaPlantilla = document.getElementById("plantilla");
+
+    // 2. Cargar países desde el endpoint de Flask
+    if (selectPais) {
+        try {
+            const res = await fetch("/api/countries");
+            const paises = await res.json();
+            
+            // Mantener Chile por defecto y limpiar
+            selectPais.innerHTML = '<option value="56">🇨🇱 Chile (+56)</option>';
+            
+            paises.forEach(p => {
+                const codigoLimpio = p.codigo.replace('+', '');
+                if (codigoLimpio === "56") return; // Evitar duplicar Chile
+                
+                const option = document.createElement("option");
+                option.value = codigoLimpio;
+                option.textContent = `${p.flag} ${p.nombre} (${p.codigo})`;
+                selectPais.appendChild(option);
+            });
+        } catch (e) {
+            console.warn("No se pudieron cargar los países. Se usa valor por defecto.", e);
+        }
+    }
+
+    // 3. Validación en tiempo real del teléfono
+    if (inputTelefono) {
+        inputTelefono.addEventListener("input", () => {
+            inputTelefono.value = inputTelefono.value.replace(/\D/g, ''); // Solo números
+            
+            const codigo = selectPais ? selectPais.value : "56";
+            const totalDigitos = (codigo + inputTelefono.value).length;
+
+            if (inputTelefono.value.length > 0 && totalDigitos < 8) {
+                errorTelefono.textContent = "El número es demasiado corto.";
+            } else if (totalDigitos > 15) {
+                errorTelefono.textContent = "El número es demasiado largo.";
+            } else {
+                errorTelefono.textContent = "";
+            }
+        });
+    }
+
+    // 4. Validación en tiempo real del link (opcional pero recomendado)
+    if (inputLink) {
+        inputLink.addEventListener("input", () => {
+            const url = inputLink.value.trim();
+            if (url && !/^https?:\/\/\S+$/i.test(url)) {
+                errorLink.textContent = "Debe empezar con http:// o https://";
+            } else {
+                errorLink.textContent = "";
+            }
+        });
+    }
+
+    // 5. Restaurar plantilla
+    if (btnRestaurar && textareaPlantilla) {
+        btnRestaurar.addEventListener("click", () => {
+            textareaPlantilla.value = "Hola {nombre}, te contacto desde..."; // Ajusta a tu texto por defecto
+        });
+    }
+
+    // 6. Manejo del envío del formulario
+    if (formulario) {
+        formulario.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            // Limpiar errores
+            errorTelefono.textContent = "";
+            errorLink.textContent = "";
+
+            // Construir teléfono final
+            const codigo = selectPais.value.replace("+", ""); 
+            const numero = inputTelefono.value.replace(/\D/g, "");
+            const telefonoCompleto = codigo + numero;
+
+            // Validaciones finales
+            let hayError = false;
+            if (!inputNombre.value.trim()) {
+                alert("El nombre es obligatorio.");
+                inputNombre.focus();
+                return;
+            }
+            if (telefonoCompleto.length < 8 || telefonoCompleto.length > 15) {
+                errorTelefono.textContent = "El teléfono debe tener entre 8 y 15 dígitos en total.";
+                inputTelefono.focus();
+                hayError = true;
+            }
+            const urlLink = inputLink.value.trim();
+            if (urlLink && !/^https?:\/\/\S+$/i.test(urlLink)) {
+                errorLink.textContent = "El link debe empezar con http:// o https://";
+                inputLink.focus();
+                hayError = true;
+            }
+
+            if (hayError) return;
+
+            // Preparar payload para Flask
+            const datos = {
+                nombre: inputNombre.value.trim(),
+                telefono: telefonoCompleto,
+                link: urlLink
+                // Nota: Si tu backend guarda la plantilla en el mismo contacto, agrega: plantilla: textareaPlantilla.value
+            };
+
+            // Estado de carga
+            btnGuardar.disabled = true;
+            btnGuardar.textContent = "Guardando...";
+
+            try {
+                const metodo = inputId.value ? "PUT" : "POST";
+                const url = inputId.value ? `/api/contactos/${inputId.value}` : "/api/contactos";
+
+                const response = await fetch(url, {
+                    method: metodo,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    // Éxito
+                    if (!inputId.value) {
+                        alert("✅ Contacto guardado exitosamente.");
+                        formulario.reset();
+                        if (selectPais) selectPais.value = "56";
+                    } else {
+                        alert("✅ Contacto actualizado exitosamente.");
+                        // Aquí podrías disparar un evento para recargar la lista de contactos
+                    }
+                } else {
+                    // Error del backend (ej: duplicado)
+                    errorTelefono.textContent = resultado.error || "No se pudo guardar el contacto.";
+                }
+            } catch (error) {
+                console.error("Error de red:", error);
+                alert("Ocurrió un error de conexión con el servidor.");
+            } finally {
+                btnGuardar.disabled = false;
+                btnGuardar.textContent = inputId.value ? "Actualizar contacto" : "Guardar contacto";
+            }
+        });
+    }
+
+    // 7. Botón cancelar edición (si tu app lo usa)
+    if (btnCancelar) {
+        btnCancelar.addEventListener("click", () => {
+            formulario.reset();
+            inputId.value = "";
+            if (selectPais) selectPais.value = "56";
+            btnGuardar.textContent = "Guardar contacto";
+            btnCancelar.hidden = true;
+            // Aquí podrías agregar lógica para ocultar el formulario o deseleccionar la fila
+        });
+    }
+});
+</script>
         </section>
       </div>
 
