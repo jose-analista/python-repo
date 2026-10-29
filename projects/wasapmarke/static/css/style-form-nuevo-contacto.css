@@ -1,0 +1,155 @@
+.campo {
+    margin-bottom: 20px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.campo .ayuda {
+    font-weight: 400;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.campo .requerido {
+    color: #d32f2f;
+}
+
+.campo input[type="text"],
+.campo input[type="tel"],
+.campo input[type="url"],
+.campo textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.campo input:focus,
+.campo textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.telefono-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.telefono-wrapper select {
+    width: 140px;
+    padding: 10px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+.telefono-wrapper select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.error-campo {
+    color: #d32f2f;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    min-height: 1.2em;
+    /* Evita saltos visuales */
+}
+
+/* Estilos para los botones (por si no los tienes definidos en tu CSS global) */
+.acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-primario {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primario:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.btn-primario:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.btn-oscuro {
+    background-color: #343a40;
+    color: white;
+}
+
+.btn-oscuro.deshabilitado {
+    background-color: #e9ecef;
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.btn-borde {
+    background-color: transparent;
+    border: 1px solid #ccc;
+    color: #333;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.btn-borde:hover {
+    background-color: #f8f9fa;
+}
+
+.personalizar {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.personalizar summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.enlace-texto {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    padding: 0;
+    margin-top: 8px;
+}

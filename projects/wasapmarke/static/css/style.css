@@ -652,6 +652,42 @@ details.personalizar textarea { min-height: 110px; margin-top: 12px; resize: ver
 .toggle-tema .ico { width: 16px; height: 16px; }
 
 /* ==========================================================================
+   BOTÓN REFRESCAR COLOR (solo visible en modo aleatorio)
+   ========================================================================== */
+.btn-nuevo-color {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  margin-top: 8px;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto-secundario);
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-nuevo-color:hover {
+  border-color: var(--verde);
+  color: var(--verde);
+  background: var(--verde-claro);
+}
+
+.btn-nuevo-color .ico {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.4s ease;
+}
+
+.btn-nuevo-color:hover .ico {
+  transform: rotate(180deg);
+}
+
+/* ==========================================================================
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 1180px) {
