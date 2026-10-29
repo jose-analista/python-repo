@@ -1,0 +1,168 @@
+.personalizar {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.personalizar summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    padding: 4px 0;
+}
+
+/* NUEVO: Estilos para el panel de variables dinámicas */
+.variables-panel {
+    margin: 16px 0;
+    padding: 14px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    border: 1px solid #cce0ff;
+}
+
+.variables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.var-input {
+    padding: 8px 12px;
+    border: 1px solid #b3d4ff;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.var-input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+#plantilla {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.ayuda {
+    font-size: 13px;
+    color: #666;
+    margin: 8px 0 0;
+}
+
+.plantillas-panel,
+.emojis-panel {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed #e0e0e0;
+}
+
+.plantillas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.sub {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.enlace-texto {
+    background: none;
+    border: none;
+    color: #0066cc;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+.categorias {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.categoria-chip {
+    padding: 6px 14px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.categoria-chip:hover {
+    background: #f5f5f5;
+}
+
+.categoria-chip.activa {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.plantillas-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.plantilla-item {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.plantilla-item:hover {
+    background: #f0f7ff;
+    border-color: #0066cc;
+}
+
+.emojis-lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.emoji-boton {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.emoji-boton:hover {
+    background: #f5f5f5;
+    transform: scale(1.15);
+}

@@ -16,8 +16,13 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='/css/temas.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style-form-nuevo-contacto.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style-personalizar--mensaje.css') }}">
   <!-- Script de temas (debe ir ANTES del body para evitar flash) -->
   <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
+  <!-- Al final del body, después de tus otros scripts -->
+  <script src="{{ url_for('static', filename='js/plantillas.js') }}"></script>
+  <!-- perosnalizar mensajes -->
+  <script src="{{ url_for('static', filename='js/personalizar-mensajes.js') }}"></script>
 </head>
 
 <body>
@@ -55,12 +60,12 @@
       <li><a href="/editor"><span class="nav-icon">🎨</span> Editor de plantillas</a></li>
     </ul>
 
-  <!-- ✅ Botón de cambio de tema (al final de la sidebar) -->
-  <div class="toggle-tema">
-    <button type="button" id="btn-toggle-tema" aria-label="Cambiar tema">
-      <!-- El contenido se llena dinámicamente desde temas.js -->
-    </button>
-  </div>
+    <!-- ✅ Botón de cambio de tema (al final de la sidebar) -->
+    <div class="toggle-tema">
+      <button type="button" id="btn-toggle-tema" aria-label="Cambiar tema">
+        <!-- El contenido se llena dinámicamente desde temas.js -->
+      </button>
+    </div>
   </aside>
 
   <main class="main-content">
@@ -120,7 +125,7 @@
             <div class="burbuja"><span id="burbuja"></span><span class="burbuja-hora" id="hora"></span></div>
           </div>
 
-          
+
 
           <!-- ESTRUCTURA HTML UNIFICADA -->
           <form id="formulario" novalidate>
@@ -148,13 +153,44 @@
               <div class="error-campo" id="error-link"></div>
             </div>
 
-            <details class="personalizar">
+
+
+            <details class="personalizar" open>
               <summary>Personalizar texto de bienvenida</summary>
-              <textarea id="plantilla" rows="4" aria-label="Texto de bienvenida"></textarea>
-              <p class="ayuda" style="margin: 8px 0 0;">Escribe <b>{nombre}</b> donde quieras que aparezca el nombre.
-              </p>
-              <button type="button" class="enlace-texto" id="restaurar">Restaurar texto original</button>
+
+              <!-- NUEVO: Panel de Variables Dinámicas -->
+              <div class="variables-panel">
+                <span class="sub" style="margin:0; font-size:13px; color:#0066cc;">📝 Variables de esta conversación
+                  (Opcional)</span>
+                <div class="variables-grid">
+                  <input type="text" id="var-nombre" placeholder="Nombre del cliente" class="var-input">
+                  <input type="text" id="var-producto" placeholder="Producto / Servicio" class="var-input">
+                  <input type="text" id="var-pedido" placeholder="Nº de Pedido / Ticket" class="var-input">
+                </div>
+              </div>
+
+              <textarea id="plantilla" rows="4" aria-label="Texto de bienvenida"
+                placeholder="Escribe tu mensaje aquí..."></textarea>
+              <p class="ayuda">💡 Tip: Si llenas las variables de arriba, se insertarán automáticamente. Si no, quedarán
+                como <b>{nombre}</b> para que las edites.</p>
+
+              <div class="plantillas-panel">
+                <div class="plantillas-header">
+                  <span class="sub" style="margin:0;">⚡ Plantillas rápidas</span>
+                  <button type="button" class="enlace-texto" id="restaurar">Limpiar todo</button>
+                </div>
+                <div class="categorias" id="categorias"></div>
+                <div class="plantillas-lista" id="plantillas-lista"></div>
+              </div>
+
+              <div class="emojis-panel">
+                <span class="sub">😀 Emojis rápidos</span>
+                <div class="emojis-lista" id="emojis-lista"></div>
+              </div>
             </details>
+
+
+
 
             <div class="acciones">
               <button type="submit" class="btn btn-primario" id="guardar">Guardar contacto</button>

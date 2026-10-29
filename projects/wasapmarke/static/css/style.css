@@ -686,7 +686,141 @@ details.personalizar textarea { min-height: 110px; margin-top: 12px; resize: ver
 .btn-nuevo-color:hover .ico {
   transform: rotate(180deg);
 }
+/* ==========================================================================
+   PLANTILLAS RÁPIDAS
+   ========================================================================== */
+.plantillas-panel,
+.emojis-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--borde);
+}
 
+.plantillas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.plantillas-header .sub {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tinta);
+}
+
+/* Categorías (chips) */
+.categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cat-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  background: var(--superficie);
+  color: var(--suave);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cat-chip:hover {
+  border-color: var(--verde);
+  color: var(--verde);
+}
+
+.cat-chip.activo {
+  background: var(--verde);
+  color: #fff;
+  border-color: var(--verde);
+}
+
+/* Lista de plantillas */
+.plantillas-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+}
+
+.plantilla-btn {
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--papel);
+  color: var(--tinta);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plantilla-btn:hover {
+  border-color: var(--verde);
+  background: var(--verde-claro);
+  transform: translateY(-1px);
+}
+
+.plantilla-btn:active {
+  transform: translateY(0);
+}
+
+/* ============================================ */
+/* EMOJIS RÁPIDOS                               */
+/* ============================================ */
+.emojis-panel .sub {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tinta);
+}
+
+.emojis-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.emoji-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--superficie);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.emoji-btn:hover {
+  background: var(--verde-claro);
+  border-color: var(--verde);
+  transform: scale(1.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .plantillas-lista {
+    grid-template-columns: 1fr;
+  }
+}
 /* ==========================================================================
    RESPONSIVE
    ========================================================================== */
